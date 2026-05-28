@@ -1,0 +1,207 @@
+{
+  "$schema": "./software-manifest.schema.json",
+  "version": "0.1.0",
+  "_remote_url": "https://raw.githubusercontent.com/qhkly/webclaw-software-manager/main/software-manifest.json",
+  "software": [
+    {
+      "id": "claude-code",
+      "name": "Claude Code CLI",
+      "category": "ai-cli",
+      "group": "ai",
+      "risk": "low",
+      "desc": "AI 编程命令行",
+      "platforms": {
+        "container": {
+          "detect": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" },
+          "latest": { "type": "npm-registry", "pkg": "@anthropic-ai/claude-code" },
+          "install": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" }
+        },
+        "macos": {
+          "detect": { "type": "shell", "cmd": "claude --version 2>&1", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "npm-registry", "pkg": "@anthropic-ai/claude-code" },
+          "install": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" }
+        },
+        "windows": {
+          "detect": { "type": "shell", "cmd": "claude --version", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "npm-registry", "pkg": "@anthropic-ai/claude-code" },
+          "install": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" }
+        }
+      }
+    },
+    {
+      "id": "codex",
+      "name": "Codex CLI",
+      "category": "ai-cli",
+      "group": "ai",
+      "risk": "low",
+      "desc": "OpenAI Codex 命令行工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "codex --version 2>&1", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "npm-registry", "pkg": "@openai/codex" },
+          "install": { "type": "npm-global", "pkg": "@openai/codex" }
+        },
+        "macos": {
+          "detect": { "type": "shell", "cmd": "codex --version 2>&1", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "npm-registry", "pkg": "@openai/codex" },
+          "install": { "type": "npm-global", "pkg": "@openai/codex" }
+        },
+        "windows": {
+          "detect": { "type": "shell", "cmd": "codex --version", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "npm-registry", "pkg": "@openai/codex" },
+          "install": { "type": "npm-global", "pkg": "@openai/codex" }
+        }
+      }
+    },
+    {
+      "id": "qq",
+      "name": "QQ",
+      "category": "social",
+      "group": "social",
+      "risk": "low",
+      "desc": "腾讯 QQ",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "test -x /opt/QQ/qq && echo installed", "version_regex": "(installed)" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-qq.sh" }
+        }
+      }
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "category": "social",
+      "group": "social",
+      "risk": "low",
+      "desc": "Telegram Desktop 即时通讯应用",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "test -x /opt/ondemand-apps/telegram/Telegram/Telegram && echo installed", "version_regex": "(installed)" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-telegram.sh" }
+        }
+      }
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "category": "social",
+      "group": "social",
+      "risk": "low",
+      "desc": "语音、视频和文字通讯应用",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "test -x /opt/ondemand-apps/discord/Discord/discord && echo installed", "version_regex": "(installed)" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-discord.sh" }
+        }
+      }
+    },
+    {
+      "id": "audacity",
+      "name": "Audacity",
+      "category": "audio",
+      "group": "media",
+      "risk": "low",
+      "desc": "音频录制与编辑工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "audacity" },
+          "latest": { "type": "apt-policy", "pkg": "audacity" },
+          "install": { "type": "apt", "pkg": "audacity" }
+        }
+      }
+    },
+    {
+      "id": "flameshot",
+      "name": "Flameshot",
+      "category": "graphics",
+      "group": "graphics",
+      "risk": "low",
+      "desc": "截图与标注工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "flameshot" },
+          "latest": { "type": "apt-policy", "pkg": "flameshot" },
+          "install": { "type": "apt", "pkg": "flameshot" }
+        }
+      }
+    },
+    {
+      "id": "gimp",
+      "name": "GIMP",
+      "category": "graphics",
+      "group": "graphics",
+      "risk": "low",
+      "desc": "图像编辑工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "gimp" },
+          "latest": { "type": "apt-policy", "pkg": "gimp" },
+          "install": { "type": "apt", "pkg": "gimp" }
+        }
+      }
+    },
+    {
+      "id": "wireshark",
+      "name": "Wireshark",
+      "category": "network",
+      "group": "network",
+      "risk": "medium",
+      "desc": "网络协议分析工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "wireshark" },
+          "latest": { "type": "apt-policy", "pkg": "wireshark" },
+          "install": { "type": "apt", "pkg": "wireshark" }
+        }
+      }
+    },
+    {
+      "id": "blender",
+      "name": "Blender",
+      "category": "graphics",
+      "group": "graphics",
+      "risk": "low",
+      "desc": "3D 创作套件",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "blender" },
+          "latest": { "type": "apt-policy", "pkg": "blender" },
+          "install": { "type": "apt", "pkg": "blender" }
+        }
+      }
+    },
+    {
+      "id": "vscode",
+      "name": "Visual Studio Code",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "微软代码编辑器",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "code" },
+          "latest": { "type": "apt-policy", "pkg": "code" },
+          "install": { "type": "apt", "pkg": "code" }
+        }
+      }
+    },
+    {
+      "id": "antigravity",
+      "name": "Google Antigravity",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "Google AI 开发工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "antigravity" },
+          "latest": { "type": "apt-policy", "pkg": "antigravity" },
+          "install": { "type": "apt", "pkg": "antigravity" }
+        }
+      }
+    }
+  ]
+}
