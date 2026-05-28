@@ -16,44 +16,33 @@ jobs:
       - name: Sync version from tag
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
-        env:
-          VER: ${{ github.ref_name }}
         run: |
-          python3 - <<'PYEOF'
-          import os, re, pathlib
-          ver = os.environ['VER'].lstrip('v')
-          for fp in ['package.json', 'src-tauri/tauri.conf.json']:
-              p = pathlib.Path(fp)
-              p.write_text(re.sub(r'"version":\s*"[^"]+"', f'"version": "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          p = pathlib.Path('src-tauri/Cargo.toml')
-          p.write_text(re.sub(r'(?m)^version = "[^"]+"', f'version = "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          print(f"Synced to {ver}")
-          PYEOF
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          node -e "const fs=require('fs'),p='src-tauri/tauri.conf.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          node -e "const fs=require('fs'),p='package.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml && rm -f src-tauri/Cargo.toml.bak
+          echo "Synced to $VERSION"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
       - name: Build (arm64)
         run: npm run build -- --target aarch64-apple-darwin
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-arm64
           path: |
@@ -62,51 +51,40 @@ jobs:
 
   build-macos-x64:
     name: macOS (x64 Intel)
-    runs-on: macos-15-intel  # Intel x64 runner (macos-13 已废弃)
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
 
       - name: Sync version from tag
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
-        env:
-          VER: ${{ github.ref_name }}
         run: |
-          python3 - <<'PYEOF'
-          import os, re, pathlib
-          ver = os.environ['VER'].lstrip('v')
-          for fp in ['package.json', 'src-tauri/tauri.conf.json']:
-              p = pathlib.Path(fp)
-              p.write_text(re.sub(r'"version":\s*"[^"]+"', f'"version": "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          p = pathlib.Path('src-tauri/Cargo.toml')
-          p.write_text(re.sub(r'(?m)^version = "[^"]+"', f'version = "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          print(f"Synced to {ver}")
-          PYEOF
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          node -e "const fs=require('fs'),p='src-tauri/tauri.conf.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          node -e "const fs=require('fs'),p='package.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml && rm -f src-tauri/Cargo.toml.bak
+          echo "Synced to $VERSION"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-darwin
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
       - name: Build (x64)
         run: npm run build -- --target x86_64-apple-darwin
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-x64
           path: |
@@ -122,19 +100,13 @@ jobs:
       - name: Sync version from tag
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
-        env:
-          VER: ${{ github.ref_name }}
         run: |
-          python3 - <<'PYEOF'
-          import os, re, pathlib
-          ver = os.environ['VER'].lstrip('v')
-          for fp in ['package.json', 'src-tauri/tauri.conf.json']:
-              p = pathlib.Path(fp)
-              p.write_text(re.sub(r'"version":\s*"[^"]+"', f'"version": "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          p = pathlib.Path('src-tauri/Cargo.toml')
-          p.write_text(re.sub(r'(?m)^version = "[^"]+"', f'version = "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          print(f"Synced to {ver}")
-          PYEOF
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          node -e "const fs=require('fs'),p='src-tauri/tauri.conf.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          node -e "const fs=require('fs'),p='package.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml && rm -f src-tauri/Cargo.toml.bak
+          echo "Synced to $VERSION"
 
       - name: Install system dependencies
         run: |
@@ -147,28 +119,22 @@ jobs:
             libssl-dev \
             libgtk-3-dev
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Build
-        run: npm run build
+      - run: npm run build
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-x64
           path: |
@@ -184,19 +150,13 @@ jobs:
       - name: Sync version from tag
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
-        env:
-          VER: ${{ github.ref_name }}
         run: |
-          python3 - <<'PYEOF'
-          import os, re, pathlib
-          ver = os.environ['VER'].lstrip('v')
-          for fp in ['package.json', 'src-tauri/tauri.conf.json']:
-              p = pathlib.Path(fp)
-              p.write_text(re.sub(r'"version":\s*"[^"]+"', f'"version": "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          p = pathlib.Path('src-tauri/Cargo.toml')
-          p.write_text(re.sub(r'(?m)^version = "[^"]+"', f'version = "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          print(f"Synced to {ver}")
-          PYEOF
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          node -e "const fs=require('fs'),p='src-tauri/tauri.conf.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          node -e "const fs=require('fs'),p='package.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml && rm -f src-tauri/Cargo.toml.bak
+          echo "Synced to $VERSION"
 
       - name: Install system dependencies
         run: |
@@ -209,30 +169,22 @@ jobs:
             libssl-dev \
             libgtk-3-dev
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-unknown-linux-gnu
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Build
-        run: npm run build
+      - run: npm run build
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-arm64
           path: |
@@ -248,44 +200,32 @@ jobs:
       - name: Sync version from tag
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
-        env:
-          VER: ${{ github.ref_name }}
         run: |
-          python3 - <<'PYEOF'
-          import os, re, pathlib
-          ver = os.environ['VER'].lstrip('v')
-          for fp in ['package.json', 'src-tauri/tauri.conf.json']:
-              p = pathlib.Path(fp)
-              p.write_text(re.sub(r'"version":\s*"[^"]+"', f'"version": "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          p = pathlib.Path('src-tauri/Cargo.toml')
-          p.write_text(re.sub(r'(?m)^version = "[^"]+"', f'version = "{ver}"', p.read_text(encoding='utf-8'), count=1), encoding='utf-8')
-          print(f"Synced to {ver}")
-          PYEOF
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          node -e "const fs=require('fs'),p='src-tauri/tauri.conf.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          node -e "const fs=require('fs'),p='package.json',d=JSON.parse(fs.readFileSync(p,'utf8'));d.version=process.argv[1];fs.writeFileSync(p,JSON.stringify(d,null,2)+'\n');" "$VERSION"
+          sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml && rm -f src-tauri/Cargo.toml.bak
+          echo "Synced to $VERSION"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Build
-        run: npm run build
+      - run: npm run build
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-x64
           path: |
@@ -300,13 +240,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts/
 
-      - name: Create release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
           generate_release_notes: true
