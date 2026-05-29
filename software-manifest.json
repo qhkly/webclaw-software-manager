@@ -274,6 +274,273 @@
           "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-obsidian.sh" }
         }
       }
+    },
+    {
+      "id": "cc-switch",
+      "name": "CC Switch",
+      "name_zh": "CC Switch",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "Claude Code 多账户快速切换工具",
+      "icon": "/opt/on-demand-icons/cc-switch.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "cc-switch" },
+          "latest": { "type": "github-release-latest", "repo": "farion1231/cc-switch" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-cc-switch.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-cc-switch.sh" }
+        }
+      }
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "name_zh": "OpenCode AI CLI",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "开源 AI 编程命令行工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/usr/local/bin/opencode" },
+          "latest": { "type": "github-release-latest", "repo": "opencode-ai/opencode" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-opencode.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-opencode.sh" }
+        }
+      }
+    },
+    {
+      "id": "opentypeless",
+      "name": "OpenTypeless",
+      "name_zh": "OpenTypeless 字幕工具",
+      "category": "media",
+      "group": "media",
+      "risk": "low",
+      "desc": "AI 驱动的字幕翻译与合成工具",
+      "icon": "/opt/on-demand-icons/opentypeless.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "opentypeless" },
+          "latest": { "type": "github-release-latest", "repo": "land007/opentypeless" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-opentypeless.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-opentypeless.sh" }
+        }
+      }
+    },
+    {
+      "id": "dockyard",
+      "name": "Dockyard",
+      "name_zh": "Dockyard 容器管理",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "Docker 容器可视化管理工具",
+      "icon": "/opt/on-demand-icons/dockyard.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "dockyard" },
+          "latest": { "type": "github-release-latest", "repo": "land007/dockyard" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-dockyard.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-dockyard.sh" }
+        }
+      }
+    },
+    {
+      "id": "ghostty",
+      "name": "Ghostty",
+      "name_zh": "Ghostty 终端",
+      "category": "system",
+      "group": "system",
+      "risk": "low",
+      "desc": "快速、功能丰富的现代终端模拟器",
+      "icon": "/opt/on-demand-icons/ghostty.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/ondemand-apps/ghostty/AppDir/bin/ghostty" },
+          "latest": { "type": "github-release-latest", "repo": "pkgforge-dev/ghostty-appimage" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-ghostty.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-ghostty.sh" }
+        }
+      }
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "name_zh": "Cursor AI 编辑器",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "AI 优先的代码编辑器",
+      "icon": "/opt/on-demand-icons/cursor.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/cursor/cursor" },
+          "latest": { "type": "shell", "cmd": "curl -fsSL https://api2.cursor.sh/updates/latest 2>/dev/null | python3 -c \"import json,sys; print(json.load(sys.stdin).get('version',''))\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-cursor.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-cursor.sh" }
+        }
+      }
+    },
+    {
+      "id": "trae",
+      "name": "Trae",
+      "name_zh": "Trae AI 编辑器",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "字节跳动 AI 代码编辑器",
+      "icon": "/opt/on-demand-icons/trae.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "trae" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-trae.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-trae.sh" }
+        }
+      }
+    },
+    {
+      "id": "webclaw-launcher",
+      "name": "WebClaw Launcher",
+      "name_zh": "WebClaw 启动器",
+      "category": "system",
+      "group": "system",
+      "risk": "low",
+      "desc": "WebClaw 桌面启动器（容器管理）",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/webclaw-launcher/AppDir/AppRun" },
+          "latest": { "type": "shell", "cmd": "curl -fsSL https://webclaw.qhkly.com/api/download/latest 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('version','').lstrip('v'))\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-launcher.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-launcher.sh" }
+        }
+      }
+    },
+    {
+      "id": "webclaw-upgrader",
+      "name": "WebClaw Upgrader",
+      "name_zh": "WebClaw 升级器",
+      "category": "system",
+      "group": "system",
+      "risk": "low",
+      "desc": "容器内软件升级管理器（含 Supervisor 状态看板）",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/usr/bin/webclaw-upgrader" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-upgrader.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-upgrader.sh" }
+        }
+      }
+    },
+    {
+      "id": "webcode-ai-studio",
+      "name": "AI Studio",
+      "name_zh": "WebCode AI Studio",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "AI CLI 会话管理器",
+      "icon": "/opt/on-demand-icons/webcode-ai-studio.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/usr/bin/webcode-ai-studio" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-ai-studio.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-ai-studio.sh" }
+        }
+      }
+    },
+    {
+      "id": "hermes",
+      "name": "Hermes Agent",
+      "name_zh": "Hermes AI 智能体",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "具有学习循环的自进化 AI 智能体",
+      "icon": "/opt/desktop-icons/hermes.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/hermes-agent/venv/bin/hermes" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-hermes.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-hermes.sh" }
+        }
+      }
+    },
+    {
+      "id": "intellij",
+      "name": "IntelliJ IDEA Community",
+      "name_zh": "IntelliJ IDEA 社区版",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "JetBrains Java/Kotlin 集成开发环境",
+      "icon": "/opt/on-demand-icons/intellij.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/intellij/bin/idea.sh" },
+          "latest": { "type": "shell", "cmd": "curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=IIC&latest=true&type=release' | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d['IIC'][0]['version'])\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.?[0-9]*)" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-intellij.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-intellij.sh" }
+        }
+      }
+    },
+    {
+      "id": "pycharm",
+      "name": "PyCharm Community",
+      "name_zh": "PyCharm 社区版",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "JetBrains Python 集成开发环境",
+      "icon": "/opt/on-demand-icons/pycharm.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/pycharm/bin/pycharm.sh" },
+          "latest": { "type": "shell", "cmd": "curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=PCP&latest=true&type=release' | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d['PCP'][0]['version'])\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.?[0-9]*)" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-pycharm.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-pycharm.sh" }
+        }
+      }
+    },
+    {
+      "id": "eclipse",
+      "name": "Eclipse IDE",
+      "name_zh": "Eclipse IDE",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "开源 Java 集成开发环境",
+      "icon": "/opt/on-demand-icons/eclipse.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/eclipse/eclipse" },
+          "latest": { "type": "static", "version": "2026-03" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-eclipse.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-eclipse.sh" }
+        }
+      }
+    },
+    {
+      "id": "android-studio",
+      "name": "Android Studio",
+      "name_zh": "Android Studio",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "Google 官方 Android 应用开发 IDE（仅 amd64）",
+      "icon": "/opt/on-demand-icons/android-studio.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/opt/android-studio/bin/studio.sh" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-android-studio.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-android-studio.sh" }
+        }
+      }
     }
   ]
 }
