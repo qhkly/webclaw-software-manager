@@ -24,9 +24,9 @@ esac
 
 echo "[INFO] 获取 Dockyard 最新版本..."
 # 通过 redirect 获取最新 release tag，不消耗 GitHub API 配额
-LATEST_TAG=$(curl -fsS -o /dev/null -w '%{redirect_url}' \
+LATEST_TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
     "https://github.com/land007/dockyard/releases/latest" 2>/dev/null \
-    | sed 's|.*/tag/v\?||' | tr -d '\r' || echo "")
+    | sed -n 's|.*/tag/v\?||p' | tr -d '\r' || echo "")
 if [ -z "$LATEST_TAG" ]; then
     # 降级：用 API（可能 403 rate limit）
     LATEST_TAG=$(curl -fsSL -H "User-Agent: webclaw-software-manager/0.1" \
@@ -40,7 +40,7 @@ if [ -z "$LATEST_TAG" ]; then
 fi
 echo "[INFO] 安装 Dockyard v${LATEST_TAG} (${ARCH})"
 
-DOWNLOAD_URL="https://github.com/land007/dockyard/releases/download/${LATEST_TAG}/dockyard_${LATEST_TAG}_${ARCH_KEY}.deb"
+DOWNLOAD_URL="https://github.com/land007/dockyard/releases/download/v${LATEST_TAG}/dockyard_${LATEST_TAG}_${ARCH_KEY}.deb"
 echo "[INFO] 下载: ${DOWNLOAD_URL}"
 
 TMP_DIR=$(mktemp -d)

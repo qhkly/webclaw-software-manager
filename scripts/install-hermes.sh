@@ -23,9 +23,8 @@ if [ -d "/opt/hermes-agent" ] && [ -f "/opt/hermes-agent/venv/bin/hermes" ] && [
 fi
 
 # 检查是否由 webclaw-app-launcher 调用（跳过重复的确认对话框）
-# webclaw-app-launcher 会先显示确认对话框，所以这里不需要再问一次
-if [ "${WEBCLAW_APP_LAUNCHER:-}" = "1" ]; then
-    echo "[INFO] 由 webclaw-app-launcher 调用，跳过确认对话框"
+if [ "${WEBCLAW_APP_LAUNCHER:-}" = "1" ] || [ "${WEBCLAW_DOCKER_BUILD:-}" = "1" ] || [ "${HERMES_DOCKER_BUILD:-}" = "1" ] || [ "${DISABLE_ZENITY:-}" = "1" ]; then
+    echo "[INFO] 跳过安装确认对话框"
 else
     # 显示安装确认对话框（仅在手动直接运行脚本时）
     zenity --question \
@@ -230,8 +229,8 @@ install_step_5_start() {
 
 # 安装进度函数
 install_progress() {
-    # 检查是否禁用 zenity（由 webclaw-app-launcher 调用时）
-    if [ "${DISABLE_ZENITY:-}" = "1" ]; then
+    # 检查是否禁用 zenity
+    if [ "${DISABLE_ZENITY:-}" = "1" ] || [ "${WEBCLAW_DOCKER_BUILD:-}" = "1" ] || [ "${HERMES_DOCKER_BUILD:-}" = "1" ]; then
         # 直接运行安装步骤，不使用 zenity 进度条
         install_step_1_dependencies
         install_step_2_clone

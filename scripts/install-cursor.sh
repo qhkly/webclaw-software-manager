@@ -16,7 +16,10 @@ fi
 ARCH=$(dpkg --print-architecture)
 case "$ARCH" in
     amd64) ARCH_KEY="linux-x64" ;;
-    arm64) ARCH_KEY="linux-arm64" ;;
+    arm64)
+        echo "[INFO] Cursor AppImage 暂不支持 arm64，跳过安装"
+        exit 0
+        ;;
     *) echo "[ERROR] 不支持的架构: $ARCH"; exit 1 ;;
 esac
 
