@@ -18,8 +18,8 @@ fi
 
 ARCH=$(dpkg --print-architecture)
 case "$ARCH" in
-    amd64) ARCH_KEY="amd64" ;;
-    arm64) ARCH_KEY="aarch64" ;;
+    amd64) DEB_ARCH="amd64" ;;
+    arm64) DEB_ARCH="arm64" ;;
     *)
         echo "[ERROR] 不支持的架构: $ARCH"
         exit 1
@@ -42,7 +42,8 @@ if [ -z "$LATEST_TAG" ]; then
 fi
 echo "[INFO] 安装 webclaw-software-manager v${LATEST_TAG} (${ARCH})"
 
-DEB_NAME="webclaw-software-manager_${LATEST_TAG}_${ARCH_KEY}.deb"
+# Tauri 打包产物文件名格式：Webclaw.Software.Manager_VERSION_ARCH.deb
+DEB_NAME="Webclaw.Software.Manager_${LATEST_TAG}_${DEB_ARCH}.deb"
 DOWNLOAD_URL="https://github.com/qhkly/webclaw-software-manager/releases/download/v${LATEST_TAG}/${DEB_NAME}"
 echo "[INFO] 下载: ${DOWNLOAD_URL}"
 
@@ -51,6 +52,10 @@ curl -fsSL --progress-bar -L "$DOWNLOAD_URL" -o "${TMP_DIR}/webclaw-software-man
 
 echo "[INFO] 安装 deb 包..."
 dpkg -i "${TMP_DIR}/webclaw-software-manager.deb" || apt-get install -fy
+
+mkdir -p /opt/on-demand-icons
+ICON_SRC=$(find /usr/share/icons /usr/share/pixmaps -name "webclaw-software-manager.png" 2>/dev/null | sort -r | head -1)
+[ -n "$ICON_SRC" ] && cp "$ICON_SRC" /opt/on-demand-icons/webclaw-software-manager.png || true
 
 rm -rf "$TMP_DIR"
 echo "[INFO] webclaw-software-manager 安装完成"
