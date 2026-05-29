@@ -35,7 +35,7 @@ echo "[INFO] 下载: ${DOWNLOAD_URL}"
 
 TMP_DIR=$(mktemp -d)
 
-# 带重试的下载（3次，指数退避）
+# 带重试的下载
 download_ok=false
 for attempt in 1 2 3; do
     if curl -fsSL \
@@ -49,27 +49,47 @@ for attempt in 1 2 3; do
     echo "[WARN] 下载失败，第 ${attempt} 次重试..."
     sleep $((attempt * 10))
 done
-
 if [ "$download_ok" != "true" ]; then
     echo "[ERROR] webclaw-launcher 下载失败（3次重试后）"
-    rm -rf "$TMP_DIR"
-    exit 1
+    rm -rf "$TMP_DIR"; exit 1
 fi
 
 command -v unzip >/dev/null 2>&1 || apt-get install -y unzip -qq 2>/dev/null || true
-mkdir -p "${TMP_DIR}/extracted"
-unzip -q "${TMP_DIR}/webclaw-launcher.zip" -d "${TMP_DIR}/extracted"
+EXTRACT_TMP="${TMP_DIR}/extracted"
+mkdir -p "$EXTRACT_TMP"
+unzip -q "${TMP_DIR}/webclaw-launcher.zip" -d "$EXTRACT_TMP"
 
-# 找到 AppRun 所在目录
-APPDIR_SRC=$(find "${TMP_DIR}/extracted" -name "AppRun" -type f 2>/dev/null | head -1 | xargs -r -I{} dirname {} || echo "")
-[ -z "$APPDIR_SRC" ] && APPDIR_SRC="${TMP_DIR}/extracted"
+# zip 内含 AppImage → 先解压 AppImage
+APPIMAGE_FILE=$(find "$EXTRACT_TMP" -maxdepth 2 -type f -name "*.AppImage" | head -1)
+if [ -n "$APPIMAGE_FILE" ]; then
+    echo "[INFO] 解压 AppImage: $(basename "$APPIMAGE_FILE")"
+    chmod +x "$APPIMAGE_FILE"
+    APPIMG_EXTRACT="${TMP_DIR}/appimg-extracted"
+    mkdir -p "$APPIMG_EXTRACT"
+    cd "$APPIMG_EXTRACT"
+    "$APPIMAGE_FILE" --appimage-extract 2>/dev/null || true
+    cd /
 
-# 处理单层目录的 zip（如果解压到了子目录）
-if [ "$APPDIR_SRC" = "${TMP_DIR}/extracted" ]; then
-    SUBDIRS=("${TMP_DIR}/extracted"/*/)
-    if [ "${#SUBDIRS[@]}" -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-        APPDIR_SRC="${SUBDIRS[0]%/}"
+    if [ -d "${APPIMG_EXTRACT}/squashfs-root" ]; then
+        APPDIR_SRC="${APPIMG_EXTRACT}/squashfs-root"
+    elif [ -d "${APPIMG_EXTRACT}/AppDir" ]; then
+        APPDIR_SRC="${APPIMG_EXTRACT}/AppDir"
+    else
+        # 尝试 unsquashfs
+        command -v unsquashfs >/dev/null 2>&1 || apt-get install -y squashfs-tools -qq 2>/dev/null || true
+        SQFS_OFFSET=$(LC_ALL=C grep -oba $'\x68\x73\x71\x73' "$APPIMAGE_FILE" 2>/dev/null | head -1 | cut -d: -f1 || echo "")
+        mkdir -p "${APPIMG_EXTRACT}/squashfs-root"
+        if [ -n "$SQFS_OFFSET" ]; then
+            unsquashfs -o "$SQFS_OFFSET" -d "${APPIMG_EXTRACT}/squashfs-root" "$APPIMAGE_FILE" >/dev/null 2>&1 || true
+        else
+            unsquashfs -d "${APPIMG_EXTRACT}/squashfs-root" "$APPIMAGE_FILE" >/dev/null 2>&1 || true
+        fi
+        APPDIR_SRC="${APPIMG_EXTRACT}/squashfs-root"
     fi
+else
+    # zip 直接含 AppDir 结构
+    APPDIR_SRC=$(find "$EXTRACT_TMP" -name "AppRun" -type f 2>/dev/null | head -1 | xargs -r -I{} dirname {} || echo "")
+    [ -z "$APPDIR_SRC" ] && APPDIR_SRC="$EXTRACT_TMP"
 fi
 
 mkdir -p "$(dirname "$INSTALL_DIR")"
@@ -87,9 +107,9 @@ chmod +x /usr/local/bin/webclaw-launcher
 
 rm -rf "$TMP_DIR"
 
-# 验证安装
 if [ ! -f "${INSTALL_DIR}/AppRun" ]; then
     echo "[ERROR] 安装后未找到 ${INSTALL_DIR}/AppRun"
+    ls "${INSTALL_DIR}/" 2>/dev/null | head -10 || true
     exit 1
 fi
 
