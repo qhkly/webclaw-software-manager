@@ -541,6 +541,24 @@
           "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-android-studio.sh" }
         }
       }
+    },
+    {
+      "id": "webclaw-software-manager",
+      "name": "Software Manager",
+      "name_zh": "WebClaw 软件管理器",
+      "category": "system",
+      "group": "system",
+      "risk": "low",
+      "desc": "图形化管理容器内应用的安装、升级与卸载",
+      "icon": "/opt/on-demand-icons/webclaw-software-manager.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "webclaw-software-manager" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/webclaw-software-manager" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-software-manager.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-software-manager.sh" }
+        }
+      }
     }
   ]
 }
