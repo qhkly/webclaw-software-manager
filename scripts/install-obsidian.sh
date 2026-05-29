@@ -77,6 +77,8 @@ cd /
 mkdir -p "$(dirname "$INSTALL_DIR")"
 rm -rf "$INSTALL_DIR"
 mv "${EXTRACT_DIR}/squashfs-root" "${INSTALL_DIR}"
+# 确保所有用户可读可执行（mktemp 创建的目录默认 700，mv 保留权限）
+chmod -R a+rX "${INSTALL_DIR}"
 
 # 创建启动脚本（通过 AppRun 启动，解决 Electron WebView 路径问题）
 cat > /usr/local/bin/obsidian <<WRAPPER_EOF
