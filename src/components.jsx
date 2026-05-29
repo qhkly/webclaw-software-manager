@@ -39,7 +39,13 @@ const ClawLogo = ({ size = 34 }) => (
 
 const MANIFEST_SOURCE_LABELS = { remote: '远端', cache: '缓存', bundled: '内置' };
 
-const Header = ({ platformLabel, manifestSource, counts, lastScan, onScan, scanning, dark, onToggleDark, onOpenTweaks }) => (
+const SCRIPTS_STATE_CFG = {
+  updating: { cls: 'scripts-updating', icon: 'refresh', iconCls: 'spin', label: '脚本更新中' },
+  updated:  { cls: 'scripts-ok',       icon: 'check',   iconCls: '',     label: '脚本已更新' },
+  warn:     { cls: 'scripts-warn',     icon: 'alert',   iconCls: '',     label: '脚本更新失败' },
+};
+
+const Header = ({ platformLabel, manifestSource, counts, lastScan, onScan, scanning, dark, onToggleDark, onOpenTweaks, scriptsState }) => (
   <header className="hdr">
     <div className="hdr-logo"><ClawLogo size={24}/></div>
     <div className="hdr-title">
@@ -53,6 +59,17 @@ const Header = ({ platformLabel, manifestSource, counts, lastScan, onScan, scann
         </span>
       </div>
     )}
+    {scriptsState && SCRIPTS_STATE_CFG[scriptsState] && (() => {
+      const cfg = SCRIPTS_STATE_CFG[scriptsState];
+      return (
+        <div className="hdr-badge">
+          <span className={`scripts-badge ${cfg.cls}`}>
+            <span className={cfg.iconCls}><Icon name={cfg.icon} size={12}/></span>
+            {cfg.label}
+          </span>
+        </div>
+      );
+    })()}
     <div className="hdr-spacer"/>
     <div className="hdr-meta">
       <span>上次扫描</span>

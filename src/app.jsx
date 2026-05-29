@@ -23,6 +23,7 @@ function App() {
   const [log, setLog] = React.useState(window.INITIAL_LOG);
   const [logOpen, setLogOpen] = React.useState(false);
   const [scanning, setScanning] = React.useState(false);
+  const [scriptsState, setScriptsState] = React.useState(null); // null|'updating'|'updated'|'warn'
   const [lastScan, setLastScan] = React.useState('');
   const [inited, setInited] = React.useState(false);
 
@@ -63,6 +64,21 @@ function App() {
         const src = await tauriInvoke('refresh_manifest');
         setManifestSource(src);
         addLog(`软件清单来源：${{ remote: '远端', cache: '缓存', bundled: '内置' }[src] || src}`, 'dim');
+        if (info.in_container) {
+          setScriptsState('updating');
+          tauriInvoke('refresh_scripts').then(r => {
+            if (r === 'updated') {
+              setScriptsState('updated');
+              addLog('安装脚本已从远端更新', 'ok');
+              setTimeout(() => setScriptsState(null), 3000);
+            } else if (r && r.startsWith('warn:')) {
+              setScriptsState('warn');
+              addLog(`安装脚本更新失败：${r.slice(5)}`, 'dim');
+            } else {
+              setScriptsState(null);
+            }
+          }).catch(() => setScriptsState('warn'));
+        }
         await doScan(info.key);
       } catch (e) {
         addLog(`初始化失败：${stringifyError(e)}`, 'err');
@@ -212,6 +228,7 @@ function App() {
         dark={t.dark}
         onToggleDark={() => setTweak('dark', !t.dark)}
         onOpenTweaks={() => window.postMessage({ type: '__activate_edit_mode' }, '*')}
+        scriptsState={scriptsState}
       />
 
       <Stats counts={counts} active={filter} onPick={(k) => setFilter(k === filter ? 'all' : k)}/>

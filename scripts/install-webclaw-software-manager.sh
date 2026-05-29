@@ -10,8 +10,9 @@ if [ -f "/.dockerenv" ] || [ "${WEBCLAW_DOCKER_BUILD:-}" = "1" ]; then
     export WEBCLAW_DOCKER_BUILD=1
 fi
 
-# 检查是否已安装
-if dpkg -s webclaw-software-manager 2>/dev/null | grep -q "Status: install ok installed"; then
+# 已安装时仅在非升级调用下跳过（FORCE_UPGRADE=1 时强制重装）
+if [ "${FORCE_UPGRADE:-0}" != "1" ] && \
+   dpkg -s webclaw-software-manager 2>/dev/null | grep -q "Status: install ok installed"; then
     echo "[INFO] webclaw-software-manager 已安装，跳过"
     exit 0
 fi
@@ -27,7 +28,7 @@ case "$ARCH" in
 esac
 
 echo "[INFO] 获取 webclaw-software-manager 最新版本..."
-LATEST_TAG=$(curl -fsS -o /dev/null -w '%{redirect_url}' \
+LATEST_TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
     "https://github.com/qhkly/webclaw-software-manager/releases/latest" 2>/dev/null \
     | sed 's|.*/tag/v\?||' | tr -d '\r' || echo "")
 if [ -z "$LATEST_TAG" ]; then

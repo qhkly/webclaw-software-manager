@@ -10,6 +10,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             detect_platform,
             refresh_manifest,
+            refresh_scripts,
             get_manifest_source,
             get_platform_catalog,
             detect_installed,

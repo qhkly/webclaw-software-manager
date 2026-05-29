@@ -938,6 +938,18 @@ button { font-family: inherit; }
 .source-cache   { background: var(--warn-tint);  color: var(--warn); }
 .source-bundled { background: var(--info-tint);  color: var(--info); }
 
+.scripts-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 22px; padding: 0 8px;
+  border-radius: 6px;
+  font-size: 11px; font-weight: 500;
+}
+.scripts-updating { background: var(--accent-tint); color: var(--accent); }
+.scripts-ok       { background: var(--ok-tint);     color: var(--ok);     }
+.scripts-warn     { background: var(--warn-tint);   color: var(--warn);   }
+.spin { display: inline-flex; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ─── Not-installed card ─────────────────────────────────── */
 .card.not-installed {
   background: var(--surface);

@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
@@ -124,6 +123,46 @@ pub async fn get_manifest_source(app: AppHandle) -> Result<ManifestSource, Strin
         source,
         version: manifest.version,
     })
+}
+
+const SCRIPTS_TARBALL_URL: &str =
+    "https://github.com/qhkly/webclaw-software-manager/archive/refs/heads/main.tar.gz";
+
+#[tauri::command]
+pub async fn refresh_scripts() -> Result<String, String> {
+    if !std::path::Path::new("/.dockerenv").exists() {
+        return Ok("skipped".into());
+    }
+
+    let output = tokio::process::Command::new("bash")
+        .arg("-c")
+        .arg(format!(
+            r#"mkdir -p /opt/install-scripts && \
+               curl -fsSL --max-time 60 "{url}" \
+               | tar -xz --strip-components=2 -C /opt/install-scripts/ \
+                 "webclaw-software-manager-main/scripts/" 2>/dev/null && \
+               chmod +x /opt/install-scripts/*.sh 2>/dev/null"#,
+            url = SCRIPTS_TARBALL_URL
+        ))
+        .output()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        let _ = tokio::process::Command::new("bash")
+            .arg("-c")
+            .arg(concat!(
+                r#"curl -fsSL --max-time 30 "#,
+                r#""https://raw.githubusercontent.com/qhkly/webclaw-software-manager/main/preinstall-full-apps.json" "#,
+                r#"-o /opt/preinstall-full-apps.json 2>/dev/null"#
+            ))
+            .output()
+            .await;
+        Ok("updated".into())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Ok(format!("warn:{}", stderr.lines().last().unwrap_or("network error")))
+    }
 }
 
 pub fn platform_entries(

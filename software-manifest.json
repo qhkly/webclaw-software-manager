@@ -556,7 +556,7 @@
           "detect": { "type": "dpkg", "pkg": "webclaw-software-manager" },
           "latest": { "type": "github-release-latest", "repo": "qhkly/webclaw-software-manager" },
           "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-software-manager.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-software-manager.sh" }
+          "upgrade": { "type": "shell", "cmd": "FORCE_UPGRADE=1 bash /opt/install-scripts/install-webclaw-software-manager.sh" }
         }
       }
     }
