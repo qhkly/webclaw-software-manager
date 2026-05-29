@@ -324,10 +324,10 @@ EOF
     chmod +x /home/ubuntu/Desktop/hermes.desktop
 
     # 更新桌面图标系统（会自动创建卸载菜单）
-    update-desktop-icons
+    update-desktop-icons || true
 
-    # 显示成功消息
-    if [ "${DISABLE_ZENITY:-}" != "1" ]; then
+    # 显示成功消息（Docker build 时跳过）
+    if [ "${DISABLE_ZENITY:-}" != "1" ] && [ "${WEBCLAW_DOCKER_BUILD:-}" != "1" ] && [ "${HERMES_DOCKER_BUILD:-}" != "1" ]; then
         zenity --info \
           --title="安装成功" \
           --text="Hermes Agent 安装成功！\n\n点击桌面图标即可打开 Web Dashboard。\n\n访问地址: http://127.0.0.1:10011\n\n右键点击图标可选择「卸载」" \
@@ -335,12 +335,15 @@ EOF
     fi
 
     # 自动打开 Dashboard（仅在非 Docker 构建环境）
-    if [ "${HERMES_DOCKER_BUILD:-}" != "1" ]; then
+    if [ "${HERMES_DOCKER_BUILD:-}" != "1" ] && [ "${WEBCLAW_DOCKER_BUILD:-}" != "1" ]; then
         /opt/hermes-browser.sh
     fi
+
+    echo "[INFO] Hermes Agent 安装完成"
 else
-    # 显示失败消息
-    if [ "${DISABLE_ZENITY:-}" != "1" ]; then
+    echo "[ERROR] Hermes Agent 安装失败，venv/bin/hermes 不存在"
+    # 显示失败消息（Docker build 时跳过）
+    if [ "${DISABLE_ZENITY:-}" != "1" ] && [ "${WEBCLAW_DOCKER_BUILD:-}" != "1" ] && [ "${HERMES_DOCKER_BUILD:-}" != "1" ]; then
         zenity --error \
           --title="安装失败" \
           --text="Hermes Agent 安装失败。\n\n请查看日志：\n/tmp/hermes_stderr.log" \
