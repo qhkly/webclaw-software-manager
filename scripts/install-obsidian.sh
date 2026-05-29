@@ -29,8 +29,16 @@ case "$ARCH" in
 esac
 
 echo "[INFO] 获取 Obsidian 最新版本..."
-LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest" \
-    | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'].lstrip('v'))" 2>/dev/null || echo "")
+# 通过 redirect 获取最新 release tag，不消耗 GitHub API 配额
+LATEST_TAG=$(curl -fsS -o /dev/null -w '%{redirect_url}' \
+    "https://github.com/obsidianmd/obsidian-releases/releases/latest" 2>/dev/null \
+    | sed 's|.*/tag/v\?||' | tr -d '\r' || echo "")
+if [ -z "$LATEST_TAG" ]; then
+    # 降级：用 API（可能 403 rate limit）
+    LATEST_TAG=$(curl -fsSL -H "User-Agent: webclaw-software-manager/0.1" \
+        "https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest" \
+        | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'].lstrip('v'))" 2>/dev/null || echo "")
+fi
 
 if [ -z "$LATEST_TAG" ]; then
     echo "[ERROR] 无法获取最新版本，请检查网络连接"

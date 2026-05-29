@@ -325,9 +325,23 @@ async fn fetch_apt_policy(pkg: &str) -> Result<Option<String>> {
 }
 
 async fn fetch_github_latest(repo: &str) -> Result<Option<String>> {
-    let url = format!("https://api.github.com/repos/{}/releases/latest", repo);
+    // 优先通过 redirect 获取最新 tag（不消耗 API 配额，无 rate limit）
+    let redirect_url = format!("https://github.com/{}/releases/latest", repo);
     let resp = HTTP
-        .get(&url)
+        .get(&redirect_url)
+        .send()
+        .await
+        .context("github redirect request")?;
+    if let Some(location) = resp.headers().get("location") {
+        let loc = location.to_str().unwrap_or("");
+        if let Some(tag) = loc.split("/tag/").nth(1) {
+            return Ok(Some(tag.trim_start_matches('v').to_string()));
+        }
+    }
+    // 降级：用 GitHub API（可能受 rate limit 影响）
+    let api_url = format!("https://api.github.com/repos/{}/releases/latest", repo);
+    let resp = HTTP
+        .get(&api_url)
         .header("Accept", "application/vnd.github+json")
         .send()
         .await
