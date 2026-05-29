@@ -202,6 +202,78 @@
           "install": { "type": "apt", "pkg": "antigravity" }
         }
       }
+    },
+    {
+      "id": "webcode-git-manager",
+      "name": "Git Manager",
+      "name_zh": "Git 仓库管理",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "Git 仓库管理工具，支持多仓库管理、查看同步状态、GitHub Actions",
+      "icon": "/opt/on-demand-icons/webcode-git-manager.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/usr/local/bin/git-manager" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-git-manager.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-git-manager.sh" }
+        }
+      }
+    },
+    {
+      "id": "wechat",
+      "name": "WeChat",
+      "name_zh": "微信",
+      "category": "social",
+      "group": "social",
+      "risk": "low",
+      "desc": "腾讯微信 Linux 客户端",
+      "icon": "/opt/on-demand-icons/wechat.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "wechat" },
+          "latest": { "type": "static", "version": "latest" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-wechat.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-wechat.sh" }
+        }
+      }
+    },
+    {
+      "id": "dbeaver",
+      "name": "DBeaver Community",
+      "name_zh": "DBeaver 数据库工具",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "通用数据库管理工具，支持主流数据库",
+      "icon": "/opt/on-demand-icons/dbeaver.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "dpkg", "pkg": "dbeaver-ce" },
+          "latest": { "type": "github-release-latest", "repo": "dbeaver/dbeaver" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-dbeaver.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-dbeaver.sh" }
+        }
+      }
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian",
+      "name_zh": "Obsidian 笔记",
+      "category": "office",
+      "group": "office",
+      "risk": "low",
+      "desc": "基于本地 Markdown 文件的知识库笔记应用",
+      "icon": "/opt/on-demand-icons/obsidian.png",
+      "platforms": {
+        "container": {
+          "detect": { "type": "binary", "path": "/usr/local/bin/obsidian" },
+          "latest": { "type": "github-release-latest", "repo": "obsidianmd/obsidian-releases" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-obsidian.sh" },
+          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-obsidian.sh" }
+        }
+      }
     }
   ]
 }

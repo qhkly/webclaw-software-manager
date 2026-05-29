@@ -3,6 +3,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::Path;
 use std::process::Stdio;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
@@ -23,10 +24,14 @@ static HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
 pub struct SoftwareEntry {
     pub id: String,
     pub name: String,
+    #[serde(default)]
+    pub name_zh: Option<String>,
     pub category: String,
     pub group: String,
     pub risk: String,
     pub desc: String,
+    #[serde(default)]
+    pub icon: Option<String>,
     pub platforms: HashMap<String, PlatformSoftwareSpec>,
 }
 
@@ -68,16 +73,26 @@ pub enum ActionSpec {
     Static {
         version: String,
     },
+    /// detect 用：检查文件是否存在，存在则视为已安装
+    Binary {
+        path: String,
+    },
+    /// latest 用：从 GitHub API 查询最新 release tag
+    GithubReleaseLatest {
+        repo: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct CatalogItem {
     pub id: String,
     pub name: String,
+    pub name_zh: Option<String>,
     pub category: String,
     pub group: String,
     pub risk: String,
     pub desc: String,
+    pub icon: Option<String>,
     pub platform: String,
     pub installed_version: Option<String>,
     pub latest_version: Option<String>,
@@ -97,10 +112,12 @@ fn item_from_entry(entry: SoftwareEntry, platform: String) -> CatalogItem {
     CatalogItem {
         id: entry.id,
         name: entry.name,
+        name_zh: entry.name_zh,
         category: entry.category,
         group: entry.group,
         risk: entry.risk,
         desc: entry.desc,
+        icon: entry.icon,
         platform,
         installed_version: None,
         latest_version: None,
@@ -205,6 +222,13 @@ async fn detect_one(spec: &ActionSpec) -> Result<Option<String>> {
         ActionSpec::NpmGlobal { pkg } => detect_npm_global(pkg).await,
         ActionSpec::Shell { cmd, version_regex } => detect_shell(cmd, version_regex.as_deref()).await,
         ActionSpec::Static { version } => Ok(Some(version.clone())),
+        ActionSpec::Binary { path } => {
+            if Path::new(path).exists() {
+                Ok(Some("installed".into()))
+            } else {
+                Ok(None)
+            }
+        }
         _ => Ok(None),
     }
 }
@@ -215,6 +239,7 @@ async fn latest_one(spec: &ActionSpec) -> Result<Option<String>> {
         ActionSpec::AptPolicy { pkg } => fetch_apt_policy(pkg).await,
         ActionSpec::Static { version } => Ok(Some(version.clone())),
         ActionSpec::Shell { cmd, version_regex } => detect_shell(cmd, version_regex.as_deref()).await,
+        ActionSpec::GithubReleaseLatest { repo } => fetch_github_latest(repo).await,
         _ => Ok(None),
     }
 }
@@ -297,6 +322,24 @@ async fn fetch_apt_policy(pkg: &str) -> Result<Option<String>> {
         .captures(&stdout)
         .and_then(|c| c.get(1))
         .map(|m| strip_apt_version(m.as_str())))
+}
+
+async fn fetch_github_latest(repo: &str) -> Result<Option<String>> {
+    let url = format!("https://api.github.com/repos/{}/releases/latest", repo);
+    let resp = HTTP
+        .get(&url)
+        .header("Accept", "application/vnd.github+json")
+        .send()
+        .await
+        .context("github api request")?;
+    if !resp.status().is_success() {
+        return Ok(None);
+    }
+    let json: serde_json::Value = resp.json().await.context("github api json")?;
+    Ok(json
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .map(|s| s.trim_start_matches('v').to_string()))
 }
 
 #[tauri::command]
