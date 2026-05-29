@@ -1,3 +1,10 @@
 {
-  "preinstall": ["wechat"]
+  "preinstall": [
+    "cc-switch",
+    "webclaw-upgrader",
+    "webcode-ai-studio",
+    "webcode-git-manager",
+    "webclaw-software-manager",
+    "wechat"
+  ]
 }

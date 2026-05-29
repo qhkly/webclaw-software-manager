@@ -1,0 +1,23 @@
+{
+  "preinstall": [
+    "webclaw-launcher",
+    "claude-code",
+    "codex",
+    "opencode",
+    "cursor",
+    "obsidian",
+    "qq",
+    "telegram",
+    "discord",
+    "dbeaver",
+    "gimp",
+    "audacity",
+    "flameshot",
+    "wireshark",
+    "ghostty",
+    "dockyard",
+    "opentypeless",
+    "vscode",
+    "hermes"
+  ]
+}

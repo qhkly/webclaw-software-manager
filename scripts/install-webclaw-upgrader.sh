@@ -45,8 +45,9 @@ install_main() {
     VER="${WEBCLAW_UPGRADER_VERSION:-latest}"
     if [ "$VER" = "latest" ]; then
         echo "[INFO] 获取最新版本..."
-        VER=$(curl -fsSL https://api.github.com/repos/land007/webclaw-upgrader/releases/latest \
-            | sed -n 's/.*"tag_name":[[:space:]]*"v\([^"]*\)".*/\1/p' | head -n1)
+        VER=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+            "https://github.com/land007/webclaw-upgrader/releases/latest" 2>/dev/null \
+            | sed -n 's|.*/tag/v\?||p' | tr -d '\r' || echo "")
     fi
     echo "[INFO] 安装 webclaw-upgrader v${VER} (${ARCH})"
 
