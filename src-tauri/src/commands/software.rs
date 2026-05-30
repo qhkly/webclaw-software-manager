@@ -210,10 +210,14 @@ pub async fn detect_installed(
     let (manifest, _) = load_effective_manifest(&app)
         .await
         .map_err(|e| e.to_string())?;
+    let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
+    let sem = std::sync::Arc::new(tokio::sync::Semaphore::new((cores * 2).clamp(4, 16)));
     let mut handles = Vec::new();
     for (entry, spec) in platform_entries(manifest, &platform) {
         let platform_key = platform.clone();
+        let permit = std::sync::Arc::clone(&sem).acquire_owned().await.unwrap();
         handles.push(tokio::spawn(async move {
+            let _permit = permit;
             let mut item = item_from_entry(entry, platform_key);
             match detect_one(&spec.detect).await {
                 Ok(Some(version)) => {
@@ -239,10 +243,14 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
     let (manifest, _) = load_effective_manifest(&app)
         .await
         .map_err(|e| e.to_string())?;
+    let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
+    let sem = std::sync::Arc::new(tokio::sync::Semaphore::new((cores * 2).clamp(4, 16)));
     let mut handles = Vec::new();
     for (entry, spec) in platform_entries(manifest, &platform) {
         let platform_key = platform.clone();
+        let permit = std::sync::Arc::clone(&sem).acquire_owned().await.unwrap();
         handles.push(tokio::spawn(async move {
+            let _permit = permit;
             let mut item = item_from_entry(entry, platform_key);
             let (installed, latest) = tokio::join!(detect_one(&spec.detect), latest_one(&spec.latest));
             match installed {
@@ -260,13 +268,7 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
             item
         }));
     }
-    let mut items = collect_items(handles).await?;
-    for item in &mut items {
-        if let Some(ref icon) = item.icon.clone() {
-            item.icon = Some(resolve_icon(icon, &app));
-        }
-    }
-    Ok(items)
+    collect_items(handles).await
 }
 
 async fn collect_items(
