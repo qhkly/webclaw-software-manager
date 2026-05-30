@@ -125,25 +125,14 @@ pub async fn get_manifest_source(app: AppHandle) -> Result<ManifestSource, Strin
     })
 }
 
-const SCRIPTS_TARBALL_URL: &str =
-    "https://github.com/qhkly/webclaw-software-manager/archive/refs/heads/main.tar.gz";
-
 #[tauri::command]
 pub async fn refresh_scripts() -> Result<String, String> {
     if !std::path::Path::new("/.dockerenv").exists() {
         return Ok("skipped".into());
     }
 
-    let output = tokio::process::Command::new("bash")
-        .arg("-c")
-        .arg(format!(
-            r#"mkdir -p /opt/install-scripts && \
-               curl -fsSL --max-time 60 "{url}" \
-               | tar -xz --strip-components=2 -C /opt/install-scripts/ \
-                 "webclaw-software-manager-main/scripts/" 2>/dev/null && \
-               chmod +x /opt/install-scripts/*.sh 2>/dev/null"#,
-            url = SCRIPTS_TARBALL_URL
-        ))
+    let output = tokio::process::Command::new("sudo")
+        .arg("/usr/local/bin/webclaw-scripts-updater")
         .output()
         .await
         .map_err(|e| e.to_string())?;
