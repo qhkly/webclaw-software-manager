@@ -12,21 +12,51 @@
       "desc": "AI 编程命令行",
       "platforms": {
         "container": {
-          "detect": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" },
-          "latest": { "type": "npm-registry", "pkg": "@anthropic-ai/claude-code" },
-          "install": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" }
+          "detect": {
+            "type": "npm-global",
+            "pkg": "@anthropic-ai/claude-code"
+          },
+          "latest": {
+            "type": "npm-registry",
+            "pkg": "@anthropic-ai/claude-code"
+          },
+          "install": {
+            "type": "npm-global",
+            "pkg": "@anthropic-ai/claude-code"
+          }
         },
         "macos": {
-          "detect": { "type": "shell", "cmd": "claude --version 2>&1", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "npm-registry", "pkg": "@anthropic-ai/claude-code" },
-          "install": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" }
+          "detect": {
+            "type": "shell",
+            "cmd": "claude --version 2>&1",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "npm-registry",
+            "pkg": "@anthropic-ai/claude-code"
+          },
+          "install": {
+            "type": "npm-global",
+            "pkg": "@anthropic-ai/claude-code"
+          }
         },
         "windows": {
-          "detect": { "type": "shell", "cmd": "claude --version", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "npm-registry", "pkg": "@anthropic-ai/claude-code" },
-          "install": { "type": "npm-global", "pkg": "@anthropic-ai/claude-code" }
+          "detect": {
+            "type": "shell",
+            "cmd": "claude --version",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "npm-registry",
+            "pkg": "@anthropic-ai/claude-code"
+          },
+          "install": {
+            "type": "npm-global",
+            "pkg": "@anthropic-ai/claude-code"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/claude-code.png"
     },
     {
       "id": "codex",
@@ -37,21 +67,52 @@
       "desc": "OpenAI Codex 命令行工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "codex --version 2>&1", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "npm-registry", "pkg": "@openai/codex" },
-          "install": { "type": "npm-global", "pkg": "@openai/codex" }
+          "detect": {
+            "type": "shell",
+            "cmd": "codex --version 2>&1",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "npm-registry",
+            "pkg": "@openai/codex"
+          },
+          "install": {
+            "type": "npm-global",
+            "pkg": "@openai/codex"
+          }
         },
         "macos": {
-          "detect": { "type": "shell", "cmd": "codex --version 2>&1", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "npm-registry", "pkg": "@openai/codex" },
-          "install": { "type": "npm-global", "pkg": "@openai/codex" }
+          "detect": {
+            "type": "shell",
+            "cmd": "codex --version 2>&1",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "npm-registry",
+            "pkg": "@openai/codex"
+          },
+          "install": {
+            "type": "npm-global",
+            "pkg": "@openai/codex"
+          }
         },
         "windows": {
-          "detect": { "type": "shell", "cmd": "codex --version", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "npm-registry", "pkg": "@openai/codex" },
-          "install": { "type": "npm-global", "pkg": "@openai/codex" }
+          "detect": {
+            "type": "shell",
+            "cmd": "codex --version",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "npm-registry",
+            "pkg": "@openai/codex"
+          },
+          "install": {
+            "type": "npm-global",
+            "pkg": "@openai/codex"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/codex.png"
     },
     {
       "id": "qq",
@@ -62,11 +123,22 @@
       "desc": "腾讯 QQ",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "test -x /opt/QQ/qq && echo installed", "version_regex": "(installed)" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-qq.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "test -x /opt/QQ/qq && echo installed",
+            "version_regex": "(installed)"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-qq.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/qq.png"
     },
     {
       "id": "telegram",
@@ -77,11 +149,22 @@
       "desc": "Telegram Desktop 即时通讯应用",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "test -x /opt/ondemand-apps/telegram/Telegram/Telegram && echo installed", "version_regex": "(installed)" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-telegram.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "test -x /opt/ondemand-apps/telegram/Telegram/Telegram && echo installed",
+            "version_regex": "(installed)"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-telegram.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/telegram.png"
     },
     {
       "id": "discord",
@@ -92,11 +175,22 @@
       "desc": "语音、视频和文字通讯应用",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "test -x /opt/ondemand-apps/discord/Discord/discord && echo installed", "version_regex": "(installed)" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-discord.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "test -x /opt/ondemand-apps/discord/Discord/discord && echo installed",
+            "version_regex": "(installed)"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-discord.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/discord.png"
     },
     {
       "id": "audacity",
@@ -107,11 +201,21 @@
       "desc": "音频录制与编辑工具",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "audacity" },
-          "latest": { "type": "apt-policy", "pkg": "audacity" },
-          "install": { "type": "apt", "pkg": "audacity" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "audacity"
+          },
+          "latest": {
+            "type": "apt-policy",
+            "pkg": "audacity"
+          },
+          "install": {
+            "type": "apt",
+            "pkg": "audacity"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/audacity.png"
     },
     {
       "id": "flameshot",
@@ -122,11 +226,21 @@
       "desc": "截图与标注工具",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "flameshot" },
-          "latest": { "type": "apt-policy", "pkg": "flameshot" },
-          "install": { "type": "apt", "pkg": "flameshot" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "flameshot"
+          },
+          "latest": {
+            "type": "apt-policy",
+            "pkg": "flameshot"
+          },
+          "install": {
+            "type": "apt",
+            "pkg": "flameshot"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/flameshot.png"
     },
     {
       "id": "gimp",
@@ -137,11 +251,21 @@
       "desc": "图像编辑工具",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "gimp" },
-          "latest": { "type": "apt-policy", "pkg": "gimp" },
-          "install": { "type": "apt", "pkg": "gimp" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "gimp"
+          },
+          "latest": {
+            "type": "apt-policy",
+            "pkg": "gimp"
+          },
+          "install": {
+            "type": "apt",
+            "pkg": "gimp"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/gimp.png"
     },
     {
       "id": "wireshark",
@@ -152,11 +276,21 @@
       "desc": "网络协议分析工具",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "wireshark" },
-          "latest": { "type": "apt-policy", "pkg": "wireshark" },
-          "install": { "type": "apt", "pkg": "wireshark" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "wireshark"
+          },
+          "latest": {
+            "type": "apt-policy",
+            "pkg": "wireshark"
+          },
+          "install": {
+            "type": "apt",
+            "pkg": "wireshark"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/wireshark.png"
     },
     {
       "id": "blender",
@@ -167,11 +301,21 @@
       "desc": "3D 创作套件",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "blender" },
-          "latest": { "type": "apt-policy", "pkg": "blender" },
-          "install": { "type": "apt", "pkg": "blender" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "blender"
+          },
+          "latest": {
+            "type": "apt-policy",
+            "pkg": "blender"
+          },
+          "install": {
+            "type": "apt",
+            "pkg": "blender"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/blender.png"
     },
     {
       "id": "vscode",
@@ -182,11 +326,21 @@
       "desc": "微软代码编辑器",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "code" },
-          "latest": { "type": "apt-policy", "pkg": "code" },
-          "install": { "type": "apt", "pkg": "code" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "code"
+          },
+          "latest": {
+            "type": "apt-policy",
+            "pkg": "code"
+          },
+          "install": {
+            "type": "apt",
+            "pkg": "code"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/vscode.png"
     },
     {
       "id": "antigravity",
@@ -197,11 +351,21 @@
       "desc": "Google AI 开发工具",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "antigravity" },
-          "latest": { "type": "apt-policy", "pkg": "antigravity" },
-          "install": { "type": "apt", "pkg": "antigravity" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "antigravity"
+          },
+          "latest": {
+            "type": "apt-policy",
+            "pkg": "antigravity"
+          },
+          "install": {
+            "type": "apt",
+            "pkg": "antigravity"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/antigravity.png"
     },
     {
       "id": "webcode-git-manager",
@@ -214,10 +378,22 @@
       "icon": "/opt/on-demand-icons/webcode-git-manager.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/usr/local/bin/git-manager" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-git-manager.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-git-manager.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/usr/local/bin/git-manager"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-git-manager.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-git-manager.sh"
+          }
         }
       }
     },
@@ -232,10 +408,22 @@
       "icon": "/opt/on-demand-icons/wechat.png",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "wechat" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-wechat.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-wechat.sh" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "wechat"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-wechat.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-wechat.sh"
+          }
         }
       }
     },
@@ -250,10 +438,22 @@
       "icon": "/opt/on-demand-icons/dbeaver.png",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "dbeaver-ce" },
-          "latest": { "type": "github-release-latest", "repo": "dbeaver/dbeaver" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-dbeaver.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-dbeaver.sh" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "dbeaver-ce"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "dbeaver/dbeaver"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-dbeaver.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-dbeaver.sh"
+          }
         }
       }
     },
@@ -268,10 +468,22 @@
       "icon": "/opt/on-demand-icons/obsidian.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/usr/local/bin/obsidian" },
-          "latest": { "type": "github-release-latest", "repo": "obsidianmd/obsidian-releases" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-obsidian.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-obsidian.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/usr/local/bin/obsidian"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "obsidianmd/obsidian-releases"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-obsidian.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-obsidian.sh"
+          }
         }
       }
     },
@@ -286,10 +498,22 @@
       "icon": "/opt/on-demand-icons/cc-switch.png",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "cc-switch" },
-          "latest": { "type": "github-release-latest", "repo": "farion1231/cc-switch" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-cc-switch.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-cc-switch.sh" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "cc-switch"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "farion1231/cc-switch"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-cc-switch.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-cc-switch.sh"
+          }
         }
       }
     },
@@ -303,17 +527,40 @@
       "desc": "开源 AI 编程命令行工具",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/usr/local/bin/opencode" },
-          "latest": { "type": "github-release-latest", "repo": "opencode-ai/opencode" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-opencode.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-opencode.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/usr/local/bin/opencode"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "opencode-ai/opencode"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-opencode.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-opencode.sh"
+          }
         },
         "macos": {
-          "detect": { "type": "shell", "cmd": "opencode --version 2>/dev/null || /usr/local/bin/opencode --version 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "opencode-ai/opencode" },
-          "install": { "type": "shell", "cmd": "ARCH=$(uname -m | sed 's/x86_64/amd64/') && TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' 'https://github.com/opencode-ai/opencode/releases/latest' | sed 's|.*/tag/v||' | tr -d '\\r') && curl -fsSL -L \"https://github.com/opencode-ai/opencode/releases/download/v${TAG}/opencode_${TAG}_darwin_${ARCH}.tar.gz\" | tar -xz -C /tmp opencode && mv /tmp/opencode /usr/local/bin/opencode && chmod +x /usr/local/bin/opencode" }
+          "detect": {
+            "type": "shell",
+            "cmd": "opencode --version 2>/dev/null || /usr/local/bin/opencode --version 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "opencode-ai/opencode"
+          },
+          "install": {
+            "type": "shell",
+            "cmd": "ARCH=$(uname -m | sed 's/x86_64/amd64/') && TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' 'https://github.com/opencode-ai/opencode/releases/latest' | sed 's|.*/tag/v||' | tr -d '\\r') && curl -fsSL -L \"https://github.com/opencode-ai/opencode/releases/download/v${TAG}/opencode_${TAG}_darwin_${ARCH}.tar.gz\" | tar -xz -C /tmp opencode && mv /tmp/opencode /usr/local/bin/opencode && chmod +x /usr/local/bin/opencode"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/opencode.png"
     },
     {
       "id": "opentypeless",
@@ -326,10 +573,22 @@
       "icon": "/opt/on-demand-icons/opentypeless.png",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "opentypeless" },
-          "latest": { "type": "github-release-latest", "repo": "land007/opentypeless" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-opentypeless.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-opentypeless.sh" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "opentypeless"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "land007/opentypeless"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-opentypeless.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-opentypeless.sh"
+          }
         }
       }
     },
@@ -344,10 +603,22 @@
       "icon": "/opt/on-demand-icons/dockyard.png",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "dockyard" },
-          "latest": { "type": "github-release-latest", "repo": "land007/dockyard" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-dockyard.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-dockyard.sh" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "dockyard"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "land007/dockyard"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-dockyard.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-dockyard.sh"
+          }
         }
       }
     },
@@ -362,10 +633,22 @@
       "icon": "/opt/on-demand-icons/ghostty.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/ondemand-apps/ghostty/AppDir/bin/ghostty" },
-          "latest": { "type": "github-release-latest", "repo": "pkgforge-dev/ghostty-appimage" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-ghostty.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-ghostty.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/ondemand-apps/ghostty/AppDir/bin/ghostty"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "pkgforge-dev/ghostty-appimage"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-ghostty.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-ghostty.sh"
+          }
         }
       }
     },
@@ -380,10 +663,23 @@
       "icon": "/opt/on-demand-icons/cursor.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/cursor/cursor" },
-          "latest": { "type": "shell", "cmd": "curl -fsSL https://api2.cursor.sh/updates/latest 2>/dev/null | python3 -c \"import json,sys; print(json.load(sys.stdin).get('version',''))\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-cursor.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-cursor.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/cursor/cursor"
+          },
+          "latest": {
+            "type": "shell",
+            "cmd": "curl -fsSL https://api2.cursor.sh/updates/latest 2>/dev/null | python3 -c \"import json,sys; print(json.load(sys.stdin).get('version',''))\" 2>/dev/null || echo \"\"",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-cursor.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-cursor.sh"
+          }
         }
       }
     },
@@ -398,10 +694,22 @@
       "icon": "/opt/on-demand-icons/trae.png",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "trae" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-trae.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-trae.sh" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "trae"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-trae.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-trae.sh"
+          }
         }
       }
     },
@@ -415,12 +723,26 @@
       "desc": "WebClaw 桌面启动器（容器管理）",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/webclaw-launcher/AppDir/AppRun" },
-          "latest": { "type": "shell", "cmd": "curl -fsSL https://webclaw.qhkly.com/api/download/latest 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('version','').lstrip('v'))\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-launcher.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-launcher.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/webclaw-launcher/AppDir/AppRun"
+          },
+          "latest": {
+            "type": "shell",
+            "cmd": "curl -fsSL https://webclaw.qhkly.com/api/download/latest 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('version','').lstrip('v'))\" 2>/dev/null || echo \"\"",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webclaw-launcher.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webclaw-launcher.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/webclaw-launcher.png"
     },
     {
       "id": "webcode-ai-studio",
@@ -433,10 +755,22 @@
       "icon": "/opt/on-demand-icons/webcode-ai-studio.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/usr/bin/webcode-ai-studio" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-ai-studio.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-ai-studio.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/usr/bin/webcode-ai-studio"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-ai-studio.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-ai-studio.sh"
+          }
         }
       }
     },
@@ -451,10 +785,22 @@
       "icon": "/opt/desktop-icons/hermes.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/hermes-agent/venv/bin/hermes" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-hermes.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-hermes.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/hermes-agent/venv/bin/hermes"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-hermes.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-hermes.sh"
+          }
         }
       }
     },
@@ -469,10 +815,23 @@
       "icon": "/opt/on-demand-icons/intellij.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/intellij/bin/idea.sh" },
-          "latest": { "type": "shell", "cmd": "curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=IIC&latest=true&type=release' | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d['IIC'][0]['version'])\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.?[0-9]*)" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-intellij.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-intellij.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/intellij/bin/idea.sh"
+          },
+          "latest": {
+            "type": "shell",
+            "cmd": "curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=IIC&latest=true&type=release' | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d['IIC'][0]['version'])\" 2>/dev/null || echo \"\"",
+            "version_regex": "([0-9]+\\.[0-9]+\\.?[0-9]*)"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-intellij.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-intellij.sh"
+          }
         }
       }
     },
@@ -487,10 +846,23 @@
       "icon": "/opt/on-demand-icons/pycharm.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/pycharm/bin/pycharm.sh" },
-          "latest": { "type": "shell", "cmd": "curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=PCP&latest=true&type=release' | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d['PCP'][0]['version'])\" 2>/dev/null || echo \"\"", "version_regex": "([0-9]+\\.[0-9]+\\.?[0-9]*)" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-pycharm.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-pycharm.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/pycharm/bin/pycharm.sh"
+          },
+          "latest": {
+            "type": "shell",
+            "cmd": "curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=PCP&latest=true&type=release' | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d['PCP'][0]['version'])\" 2>/dev/null || echo \"\"",
+            "version_regex": "([0-9]+\\.[0-9]+\\.?[0-9]*)"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-pycharm.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-pycharm.sh"
+          }
         }
       }
     },
@@ -505,10 +877,22 @@
       "icon": "/opt/on-demand-icons/eclipse.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/eclipse/eclipse" },
-          "latest": { "type": "static", "version": "2026-03" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-eclipse.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-eclipse.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/eclipse/eclipse"
+          },
+          "latest": {
+            "type": "static",
+            "version": "2026-03"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-eclipse.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-eclipse.sh"
+          }
         }
       }
     },
@@ -523,10 +907,22 @@
       "icon": "/opt/on-demand-icons/android-studio.png",
       "platforms": {
         "container": {
-          "detect": { "type": "binary", "path": "/opt/android-studio/bin/studio.sh" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-android-studio.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-android-studio.sh" }
+          "detect": {
+            "type": "binary",
+            "path": "/opt/android-studio/bin/studio.sh"
+          },
+          "latest": {
+            "type": "static",
+            "version": "latest"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-android-studio.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-android-studio.sh"
+          }
         }
       }
     },
@@ -540,11 +936,22 @@
       "desc": "扫描和管理本地 Git 仓库",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "git-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' git-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-git-manager" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-git-manager.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "git-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' git-manager 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/webcode-git-manager"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-git-manager.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/webcode-git-manager.png"
     },
     {
       "id": "webcode-i18n-manager",
@@ -556,11 +963,22 @@
       "desc": "多语言 i18n 翻译文件管理工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "i18n-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' i18n-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-i18n-manager" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-i18n-manager.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "i18n-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' i18n-manager 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/webcode-i18n-manager"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-i18n-manager.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/webcode-i18n-manager.png"
     },
     {
       "id": "webcode-icon-manager",
@@ -572,11 +990,22 @@
       "desc": "项目图标和资源文件管理工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "icon-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' icon-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-icon-manager" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-icon-manager.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "icon-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' icon-manager 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/webcode-icon-manager"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-icon-manager.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/webcode-icon-manager.png"
     },
     {
       "id": "webcode-release-tool",
@@ -588,11 +1017,22 @@
       "desc": "自动化版本发布和 changelog 生成工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "release-tool --version 2>/dev/null || dpkg-query -W -f='${Version}' release-tool 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-release-tool" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-release-tool.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "release-tool --version 2>/dev/null || dpkg-query -W -f='${Version}' release-tool 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/webcode-release-tool"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webcode-release-tool.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/webcode-release-tool.png"
     },
     {
       "id": "ipshield",
@@ -604,11 +1044,22 @@
       "desc": "IP 地址防护和管理工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "ipshield --version 2>/dev/null || dpkg-query -W -f='${Version}' ipshield 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/IPShield" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-ipshield.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "ipshield --version 2>/dev/null || dpkg-query -W -f='${Version}' ipshield 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/IPShield"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-ipshield.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/ipshield.png"
     },
     {
       "id": "sshield",
@@ -620,11 +1071,22 @@
       "desc": "SSH 连接安全补丁和管理工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "ssh-patch-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' ssh-patch-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/SSHield" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-sshield.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "ssh-patch-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' ssh-patch-manager 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/SSHield"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-sshield.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/sshield.png"
     },
     {
       "id": "ai-folder-organizer",
@@ -636,11 +1098,22 @@
       "desc": "AI 驱动的文件夹自动整理工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "ai-folder-organizer --version 2>/dev/null || dpkg-query -W -f='${Version}' ai-folder-organizer 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/ai-folder-organizer" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-ai-folder-organizer.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "ai-folder-organizer --version 2>/dev/null || dpkg-query -W -f='${Version}' ai-folder-organizer 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/ai-folder-organizer"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-ai-folder-organizer.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/ai-folder-organizer.png"
     },
     {
       "id": "webclaw-calendar",
@@ -652,11 +1125,22 @@
       "desc": "WebClaw 日历和日程管理应用",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "webclaw-calendar --version 2>/dev/null || dpkg-query -W -f='${Version}' webclaw-calendar 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/webclaw-calendar" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-calendar.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "webclaw-calendar --version 2>/dev/null || dpkg-query -W -f='${Version}' webclaw-calendar 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/webclaw-calendar"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webclaw-calendar.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/webclaw-calendar.png"
     },
     {
       "id": "image-to-svg",
@@ -668,11 +1152,22 @@
       "desc": "将位图转换为 SVG 矢量图形的工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "image-to-svg --version 2>/dev/null || dpkg-query -W -f='${Version}' image-to-svg 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/image-to-svg" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-image-to-svg.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "image-to-svg --version 2>/dev/null || dpkg-query -W -f='${Version}' image-to-svg 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/image-to-svg"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-image-to-svg.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/image-to-svg.png"
     },
     {
       "id": "webclaw-video-creator",
@@ -684,11 +1179,22 @@
       "desc": "WebClaw 视频创作和编辑工具",
       "platforms": {
         "container": {
-          "detect": { "type": "shell", "cmd": "webclaw-video-creator --version 2>/dev/null || dpkg-query -W -f='${Version}' webclaw-video-creator 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/webclaw-video-creator" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-video-creator.sh" }
+          "detect": {
+            "type": "shell",
+            "cmd": "webclaw-video-creator --version 2>/dev/null || dpkg-query -W -f='${Version}' webclaw-video-creator 2>/dev/null",
+            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/webclaw-video-creator"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webclaw-video-creator.sh"
+          }
         }
-      }
+      },
+      "icon": "/opt/on-demand-icons/webclaw-video-creator.png"
     },
     {
       "id": "webclaw-software-manager",
@@ -701,10 +1207,22 @@
       "icon": "/opt/on-demand-icons/webclaw-software-manager.png",
       "platforms": {
         "container": {
-          "detect": { "type": "dpkg", "pkg": "webclaw-software-manager" },
-          "latest": { "type": "github-release-latest", "repo": "qhkly/webclaw-software-manager" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-software-manager.sh" },
-          "upgrade": { "type": "shell", "cmd": "FORCE_UPGRADE=1 bash /opt/install-scripts/install-webclaw-software-manager.sh" }
+          "detect": {
+            "type": "dpkg",
+            "pkg": "webclaw-software-manager"
+          },
+          "latest": {
+            "type": "github-release-latest",
+            "repo": "qhkly/webclaw-software-manager"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webclaw-software-manager.sh"
+          },
+          "upgrade": {
+            "type": "shell",
+            "cmd": "FORCE_UPGRADE=1 bash /opt/install-scripts/install-webclaw-software-manager.sh"
+          }
         }
       }
     }

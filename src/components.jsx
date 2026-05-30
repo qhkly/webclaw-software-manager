@@ -152,6 +152,7 @@ const STATE_TAGS = {
 };
 
 const Card = ({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, dense }) => {
+  const [imgErr, setImgErr] = React.useState(false);
   const dotCls = STATE_DOT[item.state] || 'unk';
   const cardCls = ['card',
     item.state === 'upgradable' ? 'upgradable' : '',
@@ -174,53 +175,54 @@ const Card = ({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, dense
 
   return (
     <div className={cardCls}>
-      <div className="card-head">
-        <span className={`dot ${dotCls}`} aria-hidden/>
-        <div className="card-title-wrap">
-          <div className="card-title">{item.name}</div>
-          <div className="card-sub">{item.desc || item.category}</div>
+      <div className="card-layout">
+        <div className="card-icon-wrap">
+          {item.iconUrl && !imgErr
+            ? <img className="card-icon" src={item.iconUrl} alt="" onError={() => setImgErr(true)}/>
+            : <div className="card-icon-fallback">{item.name?.[0]?.toUpperCase() || '?'}</div>
+          }
+          <span className={`dot ${dotCls}`} aria-hidden/>
         </div>
-        <span className="tag tag-type">{item.category}</span>
-        {STATE_TAGS[item.state]}
-      </div>
-      <div className="versions">
-        <span className={`ver current ${item.installed_version ? '' : 'unknown'}`}>
-          {item.installed_version ?? (item.state === 'not_installed' ? '未安装' : '未检测')}
-        </span>
-        {item.state !== 'not_installed' && (
-          <>
-            <span className="ver-arrow">→</span>
-            {item.latest_version
-              ? <span className={`ver ${item.state === 'upgradable' ? 'latest' : 'equal'}`}>{item.latest_version}</span>
-              : <span className="ver unknown">?</span>}
-          </>
-        )}
-      </div>
-      {!dense && (
-        <div className="meta-row">
-          <span className="meta-key">风险</span>
-          <span className={`meta-val risk risk-${item.risk}`}>
-            <span className="risk-dot"/>
-            {{ low: '低', medium: '中', high: '高' }[item.risk] || item.risk}
-          </span>
-          <span className="meta-key">分组</span>
-          <span className="meta-val">{item.group || '-'}</span>
+        <div className="card-body">
+          <div className="card-head">
+            <div className="card-title-wrap">
+              <div className="card-title">{item.name}</div>
+              <div className="card-sub">{item.desc || item.category}</div>
+            </div>
+            <div className="card-tags">
+              <span className="tag tag-type">{item.category}</span>
+              {STATE_TAGS[item.state]}
+            </div>
+          </div>
+          <div className="versions">
+            <span className={`ver current ${item.installed_version ? '' : 'unknown'}`}>
+              {item.installed_version ?? (item.state === 'not_installed' ? '未安装' : '未检测')}
+            </span>
+            {item.state !== 'not_installed' && (
+              <>
+                <span className="ver-arrow">→</span>
+                {item.latest_version
+                  ? <span className={`ver ${item.state === 'upgradable' ? 'latest' : 'equal'}`}>{item.latest_version}</span>
+                  : <span className="ver unknown">?</span>}
+              </>
+            )}
+          </div>
+          <div className="card-foot">
+            <button className={`card-checkbox ${selected ? 'on' : ''}`} onClick={() => onSelect(item.id)} title={selected ? '取消选中' : '加入批量'}>
+              {selected && <Icon name="check" size={11} stroke={3}/>}
+            </button>
+            {actionButton}
+            {item.state !== 'not_installed' && (
+              <button className="btn btn-sm" onClick={() => onRecheck(item.id)}>
+                <Icon name="refresh" size={12}/>
+              </button>
+            )}
+            <div className="spacer"/>
+            {item.error && (
+              <button className="btn-icon" title={item.error}><Icon name="alert" size={13}/></button>
+            )}
+          </div>
         </div>
-      )}
-      <div className="card-foot">
-        <button className={`card-checkbox ${selected ? 'on' : ''}`} onClick={() => onSelect(item.id)} title={selected ? '取消选中' : '加入批量'}>
-          {selected && <Icon name="check" size={11} stroke={3}/>}
-        </button>
-        {actionButton}
-        {item.state !== 'not_installed' && (
-          <button className="btn btn-sm" onClick={() => onRecheck(item.id)}>
-            <Icon name="refresh" size={12}/>
-          </button>
-        )}
-        <div className="spacer"/>
-        {item.error && (
-          <button className="btn-icon" title={item.error}><Icon name="alert" size={13}/></button>
-        )}
       </div>
     </div>
   );

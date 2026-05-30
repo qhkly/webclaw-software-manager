@@ -9,6 +9,13 @@ const TWEAK_DEFAULTS = {
 const tauriInvoke = (...args) => window.__TAURI__?.core?.invoke(...args);
 const tauriListen = (...args) => window.__TAURI__?.event?.listen(...args);
 
+const toIconUrl = (path) => {
+  if (!path) return null;
+  try { return window.__TAURI__.core.convertFileSrc(path); }
+  catch { return null; }
+};
+const withIconUrl = (item) => ({ ...item, iconUrl: toIconUrl(item.icon) });
+
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [platform, setPlatform] = React.useState(null);
@@ -38,10 +45,10 @@ function App() {
     addLog(`扫描 ${platformKey} 平台软件清单...`, 'dim');
     try {
       const catalog = await tauriInvoke('get_platform_catalog', { platform: platformKey });
-      setItems(catalog);
+      setItems(catalog.map(withIconUrl));
       const checked = await tauriInvoke('check_latest', { platform: platformKey });
       const checkedMap = Object.fromEntries(checked.map(i => [i.id, i]));
-      setItems(catalog.map(i => checkedMap[i.id] || i));
+      setItems(catalog.map(i => withIconUrl(checkedMap[i.id] || i)));
       const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
       setLastScan(ts);
       const instCount = checked.filter(i => i.state !== 'not_installed').length;

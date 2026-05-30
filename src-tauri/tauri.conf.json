@@ -19,7 +19,11 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["/opt/on-demand-icons/**", "/opt/desktop-icons/**"]
+      }
     }
   },
   "bundle": {
