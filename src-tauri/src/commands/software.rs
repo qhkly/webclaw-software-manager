@@ -433,7 +433,7 @@ fn build_action_command(spec: &ActionSpec) -> Result<Vec<String>, String> {
             "-y".into(),
             pkg.clone(),
         ]),
-        ActionSpec::CustomScript { script } => Ok(vec!["bash".into(), script.clone()]),
+        ActionSpec::CustomScript { script } => Ok(vec!["sudo".into(), script.clone()]),
         ActionSpec::Shell { cmd, .. } => Ok(vec!["bash".into(), "-c".into(), cmd.clone()]),
         _ => Err("该 action 类型不能用于安装/升级".into()),
     }
