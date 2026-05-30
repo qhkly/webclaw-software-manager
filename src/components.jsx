@@ -208,9 +208,7 @@ const Card = ({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, dense
             )}
           </div>
           <div className="card-foot">
-            <button className={`card-checkbox ${selected ? 'on' : ''}`} onClick={() => onSelect(item.id)} title={selected ? '取消选中' : '加入批量'}>
-              {selected && <Icon name="check" size={11} stroke={3}/>}
-            </button>
+            <button className={`card-checkbox ${selected ? 'on' : ''}`} onClick={() => onSelect(item.id)} title={selected ? '取消选中' : '加入批量'}/>
             {actionButton}
             {item.state !== 'not_installed' && (
               <button className="btn btn-sm" onClick={() => onRecheck(item.id)}>

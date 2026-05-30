@@ -547,6 +547,16 @@ button { font-family: inherit; }
   border-color: var(--accent);
   color: #fff;
 }
+.card-checkbox.on::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 7px;
+  border-right: 1.5px solid #fff;
+  border-bottom: 1.5px solid #fff;
+  transform: rotate(45deg);
+  margin-top: -2px;
+}
 
 .tag {
   display: inline-flex; align-items: center;
