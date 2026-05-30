@@ -103,7 +103,7 @@ pub async fn refresh_manifest(app: AppHandle) -> Result<String, String> {
         if let Ok(resp) = remote {
             let text = resp.text().await.map_err(|e| e.to_string())?;
             parse_manifest(&text).await.map_err(|e| e.to_string())?;
-            write_cached_manifest(&text).await.map_err(|e| e.to_string())?;
+            let _ = write_cached_manifest(&text).await;
             return Ok("remote".into());
         }
     }
