@@ -1,33 +1,33 @@
 /* ────────────────────────────────────────────────────────────────
-   WebClaw Software Manager — warm console aesthetic
+   WebClaw Software Manager
    ──────────────────────────────────────────────────────────────── */
 
 :root {
-  --bg:        #F0EADF;
-  --bg-grain:  #ECE5D7;
-  --surface:   #FBF8F1;
-  --surface-2: #F6F1E5;
-  --ink:       #1F1A14;
-  --ink-2:     #4A4034;
-  --ink-3:     #8A7C68;
-  --ink-4:     #B5A892;
-  --line:      #DFD3BB;
-  --line-soft: #EADFC8;
+  --bg:        #F5F5F7;
+  --bg-grain:  #EBEBED;
+  --surface:   #FFFFFF;
+  --surface-2: #F0F0F2;
+  --ink:       #1C1C1E;
+  --ink-2:     #3C3C3E;
+  --ink-3:     #6C6C72;
+  --ink-4:     #AEAEB2;
+  --line:      #D1D1D6;
+  --line-soft: #E5E5EA;
   --accent:    #D4623A;
   --accent-2:  #B14E2A;
-  --accent-tint: #F7E4D6;
-  --ok:        #5C8A4A;
-  --ok-tint:   #DFE9D5;
+  --accent-tint: #FBEEE8;
+  --ok:        #34A853;
+  --ok-tint:   #D4EDD9;
   --warn:      #C7882B;
-  --warn-tint: #F4E4C2;
+  --warn-tint: #FEF0D4;
   --danger:    #B8463A;
-  --danger-tint:#F1D6D1;
+  --danger-tint:#FAE0DD;
   --info:      #3F6E91;
-  --info-tint: #DAE4EC;
+  --info-tint: #DCE9F2;
   --radius:    10px;
   --radius-sm: 7px;
-  --shadow-card: 0 1px 0 rgba(31,26,20,.04), 0 2px 6px rgba(31,26,20,.04);
-  --shadow-pop:  0 1px 0 rgba(255,255,255,.6) inset, 0 20px 50px rgba(31,26,20,.18), 0 4px 12px rgba(31,26,20,.08);
+  --shadow-card: 0 1px 0 rgba(0,0,0,.04), 0 2px 6px rgba(0,0,0,.05);
+  --shadow-pop:  0 1px 0 rgba(255,255,255,.8) inset, 0 20px 50px rgba(0,0,0,.15), 0 4px 12px rgba(0,0,0,.08);
   --font-sans:   'Inter','PingFang SC','HarmonyOS Sans SC','Microsoft YaHei',ui-sans-serif,system-ui,sans-serif;
   --font-mono:   'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
 }
@@ -66,6 +66,11 @@ html, body {
 
 body {
   min-height: 100vh;
+  background-image:
+    radial-gradient(900px 500px at 100% 110%, rgba(63,110,145,.04), transparent 60%);
+}
+
+[data-theme="dark"] body {
   background-image:
     radial-gradient(1200px 600px at 0% -10%, rgba(212,98,58,.06), transparent 60%),
     radial-gradient(900px 500px at 100% 110%, rgba(63,110,145,.05), transparent 60%);
