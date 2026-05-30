@@ -423,23 +423,6 @@
       }
     },
     {
-      "id": "webclaw-upgrader",
-      "name": "WebClaw Upgrader",
-      "name_zh": "WebClaw 升级器",
-      "category": "system",
-      "group": "system",
-      "risk": "low",
-      "desc": "容器内软件升级管理器（含 Supervisor 状态看板）",
-      "platforms": {
-        "container": {
-          "detect": { "type": "binary", "path": "/usr/bin/webclaw-upgrader" },
-          "latest": { "type": "static", "version": "latest" },
-          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-upgrader.sh" },
-          "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-upgrader.sh" }
-        }
-      }
-    },
-    {
       "id": "webcode-ai-studio",
       "name": "AI Studio",
       "name_zh": "WebCode AI Studio",
