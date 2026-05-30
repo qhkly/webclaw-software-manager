@@ -57,6 +57,6 @@ if [ "$download_ok" != "true" ]; then
 fi
 
 echo "[INFO] 安装 deb 包..."
-dpkg -i "${TMP}/app.deb" || apt-get install -fy
+sudo dpkg -i "${TMP}/app.deb" || sudo apt-get install -fy
 rm -rf "$TMP"
 echo "[INFO] Webcode Release Tool 安装完成"

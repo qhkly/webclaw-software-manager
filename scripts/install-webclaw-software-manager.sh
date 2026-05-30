@@ -52,7 +52,7 @@ TMP_DIR=$(mktemp -d)
 curl -fsSL --progress-bar -L "$DOWNLOAD_URL" -o "${TMP_DIR}/webclaw-software-manager.deb"
 
 echo "[INFO] 安装 deb 包..."
-dpkg -i "${TMP_DIR}/webclaw-software-manager.deb" || apt-get install -fy
+sudo dpkg -i "${TMP_DIR}/webclaw-software-manager.deb" || sudo apt-get install -fy
 
 mkdir -p /opt/on-demand-icons
 ICON_SRC=$(find /usr/share/icons /usr/share/pixmaps -name "webclaw-software-manager.png" 2>/dev/null | sort -r | head -1)

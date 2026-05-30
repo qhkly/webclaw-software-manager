@@ -47,7 +47,7 @@ TMP_DIR=$(mktemp -d)
 curl -fsSL --progress-bar -L "$DOWNLOAD_URL" -o "${TMP_DIR}/opentypeless.deb"
 
 echo "[INFO] 安装 deb 包..."
-dpkg -i "${TMP_DIR}/opentypeless.deb" || apt-get install -fy
+sudo dpkg -i "${TMP_DIR}/opentypeless.deb" || sudo apt-get install -fy
 
 rm -rf "$TMP_DIR"
 

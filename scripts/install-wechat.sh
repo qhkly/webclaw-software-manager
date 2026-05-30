@@ -34,7 +34,7 @@ TMP_DIR=$(mktemp -d)
 curl -fsSL --progress-bar "$DOWNLOAD_URL" -o "${TMP_DIR}/wechat.deb"
 
 echo "[INFO] 安装 deb 包..."
-dpkg -i "${TMP_DIR}/wechat.deb" || apt-get install -fy
+sudo dpkg -i "${TMP_DIR}/wechat.deb" || sudo apt-get install -fy
 
 rm -rf "$TMP_DIR"
 

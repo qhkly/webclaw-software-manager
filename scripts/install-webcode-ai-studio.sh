@@ -107,7 +107,7 @@ install_main() {
 
     if [ -n "$DEB_FILE" ]; then
         echo "[INFO] 安装 deb 包: $(basename "$DEB_FILE")"
-        dpkg -i "$DEB_FILE" || apt-get install -fy
+        sudo dpkg -i "$DEB_FILE" || sudo apt-get install -fy
     elif [ -n "$APPIMAGE_FILE" ]; then
         echo "[INFO] 安装 AppImage（提取模式，无需 FUSE）: $(basename "$APPIMAGE_FILE")"
 

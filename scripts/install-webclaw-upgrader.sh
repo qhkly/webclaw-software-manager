@@ -56,7 +56,7 @@ install_main() {
     DEB_URL="https://github.com/land007/webclaw-upgrader/releases/download/v${VER}/WebClaw.Upgrader_${VER}_${ARCH}.deb"
     echo "[INFO] 下载 ${DEB_URL}"
     curl -fsSL "$DEB_URL" -o /tmp/webclaw-upgrader.deb
-    dpkg -i /tmp/webclaw-upgrader.deb || apt-get install -fy
+    sudo dpkg -i /tmp/webclaw-upgrader.deb || sudo apt-get install -fy
     rm -f /tmp/webclaw-upgrader.deb
 
     echo "80" > "$PROGRESS_FILE"

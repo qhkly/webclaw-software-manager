@@ -47,7 +47,7 @@ TMP_DIR=$(mktemp -d)
 curl -fsSL --progress-bar -L "$DOWNLOAD_URL" -o "${TMP_DIR}/dbeaver.deb"
 
 echo "[INFO] 安装 deb 包..."
-dpkg -i "${TMP_DIR}/dbeaver.deb" || apt-get install -fy
+sudo dpkg -i "${TMP_DIR}/dbeaver.deb" || sudo apt-get install -fy
 
 rm -rf "$TMP_DIR"
 

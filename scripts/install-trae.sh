@@ -25,7 +25,7 @@ echo "[INFO] 下载 Trae ${TRAE_VERSION}: ${DOWNLOAD_URL}"
 
 TMP_DIR=$(mktemp -d)
 curl -fsSL --progress-bar -L "$DOWNLOAD_URL" -o "${TMP_DIR}/trae.deb"
-dpkg -i "${TMP_DIR}/trae.deb" || apt-get install -fy
+sudo dpkg -i "${TMP_DIR}/trae.deb" || sudo apt-get install -fy
 rm -rf "$TMP_DIR"
 
 mkdir -p /opt/on-demand-icons
