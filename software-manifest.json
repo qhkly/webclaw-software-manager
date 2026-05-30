@@ -307,6 +307,11 @@
           "latest": { "type": "github-release-latest", "repo": "opencode-ai/opencode" },
           "install": { "type": "custom-script", "script": "/opt/install-scripts/install-opencode.sh" },
           "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-opencode.sh" }
+        },
+        "macos": {
+          "detect": { "type": "shell", "cmd": "opencode --version 2>/dev/null || /usr/local/bin/opencode --version 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "opencode-ai/opencode" },
+          "install": { "type": "shell", "cmd": "ARCH=$(uname -m | sed 's/x86_64/amd64/') && TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' 'https://github.com/opencode-ai/opencode/releases/latest' | sed 's|.*/tag/v||' | tr -d '\\r') && curl -fsSL -L \"https://github.com/opencode-ai/opencode/releases/download/v${TAG}/opencode_${TAG}_darwin_${ARCH}.tar.gz\" | tar -xz -C /tmp opencode && mv /tmp/opencode /usr/local/bin/opencode && chmod +x /usr/local/bin/opencode" }
         }
       }
     },
@@ -539,6 +544,166 @@
           "latest": { "type": "static", "version": "latest" },
           "install": { "type": "custom-script", "script": "/opt/install-scripts/install-android-studio.sh" },
           "upgrade": { "type": "custom-script", "script": "/opt/install-scripts/install-android-studio.sh" }
+        }
+      }
+    },
+    {
+      "id": "webcode-git-manager",
+      "name": "Git Manager",
+      "name_zh": "Git 仓库管理",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "扫描和管理本地 Git 仓库",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "git-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' git-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-git-manager" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-git-manager.sh" }
+        }
+      }
+    },
+    {
+      "id": "webcode-i18n-manager",
+      "name": "i18n Manager",
+      "name_zh": "多语言翻译管理",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "多语言 i18n 翻译文件管理工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "i18n-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' i18n-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-i18n-manager" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-i18n-manager.sh" }
+        }
+      }
+    },
+    {
+      "id": "webcode-icon-manager",
+      "name": "Icon Manager",
+      "name_zh": "图标资源管理",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "项目图标和资源文件管理工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "icon-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' icon-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-icon-manager" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-icon-manager.sh" }
+        }
+      }
+    },
+    {
+      "id": "webcode-release-tool",
+      "name": "Release Tool",
+      "name_zh": "发版自动化工具",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "自动化版本发布和 changelog 生成工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "release-tool --version 2>/dev/null || dpkg-query -W -f='${Version}' release-tool 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/webcode-release-tool" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webcode-release-tool.sh" }
+        }
+      }
+    },
+    {
+      "id": "ipshield",
+      "name": "IPShield",
+      "name_zh": "IP 防护工具",
+      "category": "network",
+      "group": "network",
+      "risk": "low",
+      "desc": "IP 地址防护和管理工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "ipshield --version 2>/dev/null || dpkg-query -W -f='${Version}' ipshield 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/IPShield" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-ipshield.sh" }
+        }
+      }
+    },
+    {
+      "id": "sshield",
+      "name": "SSHield",
+      "name_zh": "SSH 安全补丁",
+      "category": "network",
+      "group": "network",
+      "risk": "low",
+      "desc": "SSH 连接安全补丁和管理工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "ssh-patch-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' ssh-patch-manager 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/SSHield" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-sshield.sh" }
+        }
+      }
+    },
+    {
+      "id": "ai-folder-organizer",
+      "name": "AI Folder Organizer",
+      "name_zh": "AI 文件整理",
+      "category": "ai",
+      "group": "ai",
+      "risk": "low",
+      "desc": "AI 驱动的文件夹自动整理工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "ai-folder-organizer --version 2>/dev/null || dpkg-query -W -f='${Version}' ai-folder-organizer 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/ai-folder-organizer" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-ai-folder-organizer.sh" }
+        }
+      }
+    },
+    {
+      "id": "webclaw-calendar",
+      "name": "WebClaw Calendar",
+      "name_zh": "WebClaw 日历",
+      "category": "office",
+      "group": "office",
+      "risk": "low",
+      "desc": "WebClaw 日历和日程管理应用",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "webclaw-calendar --version 2>/dev/null || dpkg-query -W -f='${Version}' webclaw-calendar 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/webclaw-calendar" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-calendar.sh" }
+        }
+      }
+    },
+    {
+      "id": "image-to-svg",
+      "name": "Image to SVG",
+      "name_zh": "图片转矢量图",
+      "category": "graphics",
+      "group": "graphics",
+      "risk": "low",
+      "desc": "将位图转换为 SVG 矢量图形的工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "image-to-svg --version 2>/dev/null || dpkg-query -W -f='${Version}' image-to-svg 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/image-to-svg" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-image-to-svg.sh" }
+        }
+      }
+    },
+    {
+      "id": "webclaw-video-creator",
+      "name": "WebClaw Video Creator",
+      "name_zh": "WebClaw 视频创作",
+      "category": "media",
+      "group": "media",
+      "risk": "low",
+      "desc": "WebClaw 视频创作和编辑工具",
+      "platforms": {
+        "container": {
+          "detect": { "type": "shell", "cmd": "webclaw-video-creator --version 2>/dev/null || dpkg-query -W -f='${Version}' webclaw-video-creator 2>/dev/null", "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)" },
+          "latest": { "type": "github-release-latest", "repo": "qhkly/webclaw-video-creator" },
+          "install": { "type": "custom-script", "script": "/opt/install-scripts/install-webclaw-video-creator.sh" }
         }
       }
     },
