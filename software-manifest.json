@@ -927,33 +927,6 @@
       }
     },
     {
-      "id": "webcode-git-manager",
-      "name": "Git Manager",
-      "name_zh": "Git 仓库管理",
-      "category": "dev",
-      "group": "dev",
-      "risk": "low",
-      "desc": "扫描和管理本地 Git 仓库",
-      "platforms": {
-        "container": {
-          "detect": {
-            "type": "shell",
-            "cmd": "git-manager --version 2>/dev/null || dpkg-query -W -f='${Version}' git-manager 2>/dev/null",
-            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-          },
-          "latest": {
-            "type": "github-release-latest",
-            "repo": "qhkly/webcode-git-manager"
-          },
-          "install": {
-            "type": "custom-script",
-            "script": "/opt/install-scripts/install-webcode-git-manager.sh"
-          }
-        }
-      },
-      "icon": "/opt/on-demand-icons/webcode-git-manager.png"
-    },
-    {
       "id": "webcode-i18n-manager",
       "name": "i18n Manager",
       "name_zh": "多语言翻译管理",
