@@ -543,19 +543,14 @@ button { font-family: inherit; }
 }
 .card-checkbox:hover { border-color: var(--ink-2); }
 .card-checkbox.on {
-  background: var(--accent);
+  background-color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5 L6.5 12 L13 5' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 14px;
   border-color: var(--accent);
-  color: #fff;
 }
-.card-checkbox.on::after {
-  content: '';
-  display: block;
-  width: 4px;
-  height: 7px;
-  border-right: 1.5px solid #fff;
-  border-bottom: 1.5px solid #fff;
-  transform: rotate(45deg) translate(-1px, -1px);
-}
+.card-checkbox.on::after { display: none; }
 
 .tag {
   display: inline-flex; align-items: center;
