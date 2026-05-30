@@ -395,13 +395,25 @@ button { font-family: inherit; }
 .batch-info { font-size: 13px; }
 .batch-info b { font-variant-numeric: tabular-nums; }
 
+/* ─── Sticky header area ─────────────────────────────── */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--bg);
+  margin: -28px -32px 0;
+  padding: 28px 32px 0;
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,.06);
+}
+[data-theme="dark"] .sticky-header {
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,.3);
+}
+
 /* ─── Card grid ──────────────────────────────────────── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 14px;
-  transform: translateZ(0);
-  will-change: transform;
 }
 .grid.density-compact { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
 .grid.density-comfy   { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px; }

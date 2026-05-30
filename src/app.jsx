@@ -226,21 +226,23 @@ function App() {
 
   return (
     <div className="app">
-      <Header
-        platformLabel={platformLabel}
-        manifestSource={manifestSource}
-        counts={counts}
-        lastScan={lastScan}
-        scanning={scanning || !inited}
-        onScan={onRescan}
-        dark={t.dark}
-        onToggleDark={() => setTweak('dark', !t.dark)}
-        onOpenTweaks={() => window.postMessage({ type: '__activate_edit_mode' }, '*')}
-        scriptsState={scriptsState}
-      />
+      <div className="sticky-header">
+        <Header
+          platformLabel={platformLabel}
+          manifestSource={manifestSource}
+          counts={counts}
+          lastScan={lastScan}
+          scanning={scanning || !inited}
+          onScan={onRescan}
+          dark={t.dark}
+          onToggleDark={() => setTweak('dark', !t.dark)}
+          onOpenTweaks={() => window.postMessage({ type: '__activate_edit_mode' }, '*')}
+          scriptsState={scriptsState}
+        />
 
-      <Stats counts={counts} active={filter} onPick={(k) => setFilter(k === filter ? 'all' : k)}/>
-      <Toolbar filter={filter} onFilter={setFilter} counts={counts} q={q} onQ={setQ} sort={sort} onSort={setSort}/>
+        <Stats counts={counts} active={filter} onPick={(k) => setFilter(k === filter ? 'all' : k)}/>
+        <Toolbar filter={filter} onFilter={setFilter} counts={counts} q={q} onQ={setQ} sort={sort} onSort={setSort}/>
+      </div>
 
       {selected.size > 0 && upgradable.some(i => selected.has(i.id)) && (
         <BatchBar
