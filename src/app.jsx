@@ -11,6 +11,7 @@ const tauriListen = (...args) => window.__TAURI__?.event?.listen(...args);
 
 const toIconUrl = (path) => {
   if (!path) return null;
+  if (path.startsWith('data:')) return path;
   try { return window.__TAURI__.core.convertFileSrc(path); }
   catch { return null; }
 };

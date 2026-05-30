@@ -126,7 +126,20 @@ fn item_from_entry(entry: SoftwareEntry, platform: String) -> CatalogItem {
     }
 }
 
-fn resolve_icon_path(icon: &str, app: &AppHandle) -> String {
+fn icon_to_data_url(path: &std::path::Path) -> Option<String> {
+    let bytes = std::fs::read(path).ok()?;
+    use base64::Engine;
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    let mime = if path.extension().and_then(|e| e.to_str()) == Some("svg") {
+        "image/svg+xml"
+    } else {
+        "image/png"
+    };
+    Some(format!("data:{};base64,{}", mime, b64))
+}
+
+fn resolve_icon(icon: &str, app: &AppHandle) -> String {
+    // If the file already exists at the manifest path (e.g. /opt/ on Linux), use as-is
     if std::path::Path::new(icon).exists() {
         return icon.to_string();
     }
@@ -137,29 +150,31 @@ fn resolve_icon_path(icon: &str, app: &AppHandle) -> String {
     if filename.is_empty() {
         return icon.to_string();
     }
-    // Production bundle: resource_dir / on-demand-icons / filename
+    // Candidate search paths — try each, return first data URL that works
+    let mut candidates: Vec<std::path::PathBuf> = Vec::new();
+    // 1. resource_dir / on-demand-icons / filename (production bundle)
     if let Ok(resource_dir) = app.path().resource_dir() {
-        let bundled = resource_dir.join("on-demand-icons").join(filename);
-        if bundled.exists() {
-            return bundled.to_string_lossy().into_owned();
-        }
-        // Tauri v2 places single-file resources at resource_dir root
-        let bundled_root = resource_dir.join(filename);
-        if bundled_root.exists() {
-            return bundled_root.to_string_lossy().into_owned();
-        }
+        candidates.push(resource_dir.join("on-demand-icons").join(filename));
+        candidates.push(resource_dir.join(filename));
     }
-    // Dev mode: binary is at target/debug/, walk up to project root
+    // 2. CWD / on-demand-icons / filename (dev: CWD = webclaw-software-manager/)
+    candidates.push(std::path::PathBuf::from("on-demand-icons").join(filename));
+    // 3. Exe-relative (dev binary at target/debug/, go up to project root)
     if let Ok(exe) = std::env::current_exe() {
         if let Some(parent) = exe.parent() {
-            for up in &["../../on-demand-icons", "../../../on-demand-icons"] {
-                let candidate = parent.join(up).join(filename);
-                if candidate.exists() {
-                    return candidate.canonicalize()
-                        .unwrap_or(candidate)
-                        .to_string_lossy()
-                        .into_owned();
-                }
+            for up in &[
+                "../../../../on-demand-icons",
+                "../../../on-demand-icons",
+                "../../on-demand-icons",
+            ] {
+                candidates.push(parent.join(up).join(filename));
+            }
+        }
+    }
+    for candidate in &candidates {
+        if candidate.exists() {
+            if let Some(data_url) = icon_to_data_url(candidate) {
+                return data_url;
             }
         }
     }
@@ -176,14 +191,13 @@ pub async fn get_platform_catalog(
         .map_err(|e| e.to_string())?;
     let mut items: Vec<_> = platform_entries(manifest, &platform)
         .into_iter()
-        .map(|(entry, _)| {
-            let mut item = item_from_entry(entry, platform.clone());
-            if let Some(ref icon) = item.icon.clone() {
-                item.icon = Some(resolve_icon_path(icon, &app));
-            }
-            item
-        })
+        .map(|(entry, _)| item_from_entry(entry, platform.clone()))
         .collect();
+    for item in &mut items {
+        if let Some(ref icon) = item.icon.clone() {
+            item.icon = Some(resolve_icon(icon, &app));
+        }
+    }
     items.sort_by(|a, b| a.group.cmp(&b.group).then(a.name.cmp(&b.name)));
     Ok(items)
 }
@@ -246,7 +260,13 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
             item
         }));
     }
-    collect_items(handles).await
+    let mut items = collect_items(handles).await?;
+    for item in &mut items {
+        if let Some(ref icon) = item.icon.clone() {
+            item.icon = Some(resolve_icon(icon, &app));
+        }
+    }
+    Ok(items)
 }
 
 async fn collect_items(
