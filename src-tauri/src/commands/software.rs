@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::Stdio;
 use std::time::Duration;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
@@ -126,6 +126,46 @@ fn item_from_entry(entry: SoftwareEntry, platform: String) -> CatalogItem {
     }
 }
 
+fn resolve_icon_path(icon: &str, app: &AppHandle) -> String {
+    if std::path::Path::new(icon).exists() {
+        return icon.to_string();
+    }
+    let filename = std::path::Path::new(icon)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("");
+    if filename.is_empty() {
+        return icon.to_string();
+    }
+    // Production bundle: resource_dir / on-demand-icons / filename
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let bundled = resource_dir.join("on-demand-icons").join(filename);
+        if bundled.exists() {
+            return bundled.to_string_lossy().into_owned();
+        }
+        // Tauri v2 places single-file resources at resource_dir root
+        let bundled_root = resource_dir.join(filename);
+        if bundled_root.exists() {
+            return bundled_root.to_string_lossy().into_owned();
+        }
+    }
+    // Dev mode: binary is at target/debug/, walk up to project root
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            for up in &["../../on-demand-icons", "../../../on-demand-icons"] {
+                let candidate = parent.join(up).join(filename);
+                if candidate.exists() {
+                    return candidate.canonicalize()
+                        .unwrap_or(candidate)
+                        .to_string_lossy()
+                        .into_owned();
+                }
+            }
+        }
+    }
+    icon.to_string()
+}
+
 #[tauri::command]
 pub async fn get_platform_catalog(
     app: AppHandle,
@@ -136,7 +176,13 @@ pub async fn get_platform_catalog(
         .map_err(|e| e.to_string())?;
     let mut items: Vec<_> = platform_entries(manifest, &platform)
         .into_iter()
-        .map(|(entry, _)| item_from_entry(entry, platform.clone()))
+        .map(|(entry, _)| {
+            let mut item = item_from_entry(entry, platform.clone());
+            if let Some(ref icon) = item.icon.clone() {
+                item.icon = Some(resolve_icon_path(icon, &app));
+            }
+            item
+        })
         .collect();
     items.sort_by(|a, b| a.group.cmp(&b.group).then(a.name.cmp(&b.name)));
     Ok(items)

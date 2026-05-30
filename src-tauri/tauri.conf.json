@@ -23,7 +23,7 @@
       "csp": null,
       "assetProtocol": {
         "enable": true,
-        "scope": ["/opt/on-demand-icons/**", "/opt/desktop-icons/**"]
+        "scope": ["/opt/on-demand-icons/**", "/opt/desktop-icons/**", "$RESOURCE/**"]
       }
     }
   },
@@ -49,7 +49,8 @@
       }
     },
     "resources": [
-      "../software-manifest.json"
+      "../software-manifest.json",
+      "../on-demand-icons/*.png"
     ]
   }
 }
