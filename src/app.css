@@ -554,8 +554,7 @@ button { font-family: inherit; }
   height: 7px;
   border-right: 1.5px solid #fff;
   border-bottom: 1.5px solid #fff;
-  transform: rotate(45deg);
-  margin-top: -2px;
+  transform: rotate(45deg) translate(-1px, -1px);
 }
 
 .tag {
