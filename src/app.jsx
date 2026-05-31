@@ -225,56 +225,70 @@ function App() {
   const upgradable = items.filter(i => i.state === 'upgradable');
 
   return (
-    <div className="app">
-      <div className="sticky-header">
-        <Header
-          platformLabel={platformLabel}
-          manifestSource={manifestSource}
-          counts={counts}
-          lastScan={lastScan}
-          scanning={scanning || !inited}
-          onScan={onRescan}
-          dark={t.dark}
-          onToggleDark={() => setTweak('dark', !t.dark)}
-          onOpenTweaks={() => window.postMessage({ type: '__activate_edit_mode' }, '*')}
-          scriptsState={scriptsState}
-        />
-
-        <Stats counts={counts} active={filter} onPick={(k) => setFilter(k === filter ? 'all' : k)}/>
-        <Toolbar filter={filter} onFilter={setFilter} counts={counts} q={q} onQ={setQ} sort={sort} onSort={setSort}/>
-      </div>
-
-      {selected.size > 0 && upgradable.some(i => selected.has(i.id)) && (
-        <BatchBar
-          count={[...selected].filter(id => items.find(i => i.id === id && i.state === 'upgradable')).length}
-          onClear={() => setSelected(new Set())}
-          onUpgrade={onBatchUpgrade}
-          onRecheck={onRecheck}
-        />
-      )}
-
-      <div className={`grid density-${t.density}`}>
-        {visible.map(i => (
-          <Card
-            key={i.id}
-            item={i}
-            selected={selected.has(i.id)}
-            onSelect={onSelect}
-            onInstall={onInstall}
-            onUpgrade={onUpgrade}
-            onRecheck={onRecheck}
-            dense={t.density === 'compact'}
+    <>
+      <div className="app">
+        <div className="sticky-header">
+          <Header
+            platformLabel={platformLabel}
+            manifestSource={manifestSource}
+            counts={counts}
+            lastScan={lastScan}
+            scanning={scanning || !inited}
+            onScan={onRescan}
+            dark={t.dark}
+            onToggleDark={() => setTweak('dark', !t.dark)}
+            onOpenTweaks={() => window.postMessage({ type: '__activate_edit_mode' }, '*')}
+            scriptsState={scriptsState}
           />
-        ))}
-        {visible.length === 0 && inited && (
-          <div className="empty-panel">没有匹配的软件项，试试调整筛选或搜索词</div>
-        )}
-        {!inited && (
-          <div className="empty-panel">正在初始化...</div>
-        )}
-      </div>
 
-      <LogBar entries={log} open={logOpen} onToggle={() => setLogOpen(o => !o)}/>
+          <Stats counts={counts} active={filter} onPick={(k) => setFilter(k === filter ? 'all' : k)}/>
+          <Toolbar filter={filter} onFilter={setFilter} counts={counts} q={q} onQ={setQ} sort={sort} onSort={setSort}/>
+        </div>
+
+        {selected.size > 0 && upgradable.some(i => selected.has(i.id)) && (
+          <BatchBar
+            count={[...selected].filter(id => items.find(i => i.id === id && i.state === 'upgradable')).length}
+            onClear={() => setSelected(new Set())}
+            onUpgrade={onBatchUpgrade}
+            onRecheck={onRecheck}
+          />
+        )}
+
+        <div className={`grid density-${t.density}`}>
+          {visible.map(i => (
+            <Card
+              key={i.id}
+              item={i}
+              selected={selected.has(i.id)}
+              onSelect={onSelect}
+              onInstall={onInstall}
+              onUpgrade={onUpgrade}
+              onRecheck={onRecheck}
+              dense={t.density === 'compact'}
+            />
+          ))}
+          {visible.length === 0 && inited && (
+            <div className="empty-panel">没有匹配的软件项，试试调整筛选或搜索词</div>
+          )}
+          {!inited && (
+            <div className="empty-panel">正在初始化...</div>
+          )}
+        </div>
+
+        <LogBar entries={log} open={logOpen} onToggle={() => setLogOpen(o => !o)}/>
+
+        <TweaksPanel>
+          <TweakSection label="主题"/>
+          <TweakColor label="主色" value={t.accent}
+                      options={['#D4623A', '#3F6E91', '#5C8A4A', '#7A5AE0']}
+                      onChange={(v) => setTweak('accent', v)}/>
+          <TweakToggle label="深色模式" value={t.dark} onChange={(v) => setTweak('dark', v)}/>
+          <TweakSection label="布局"/>
+          <TweakRadio label="卡片密度" value={t.density}
+                      options={['compact', 'regular', 'comfy']}
+                      onChange={(v) => setTweak('density', v)}/>
+        </TweaksPanel>
+      </div>
 
       {modal && (
         <ActionModal
@@ -286,19 +300,7 @@ function App() {
           onConfirm={onConfirmAction}
         />
       )}
-
-      <TweaksPanel>
-        <TweakSection label="主题"/>
-        <TweakColor label="主色" value={t.accent}
-                    options={['#D4623A', '#3F6E91', '#5C8A4A', '#7A5AE0']}
-                    onChange={(v) => setTweak('accent', v)}/>
-        <TweakToggle label="深色模式" value={t.dark} onChange={(v) => setTweak('dark', v)}/>
-        <TweakSection label="布局"/>
-        <TweakRadio label="卡片密度" value={t.density}
-                    options={['compact', 'regular', 'comfy']}
-                    onChange={(v) => setTweak('density', v)}/>
-      </TweaksPanel>
-    </div>
+    </>
   );
 }
 
