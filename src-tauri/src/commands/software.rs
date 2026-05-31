@@ -15,7 +15,7 @@ use super::manifest::{load_effective_manifest, platform_entries};
 static HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
     reqwest::Client::builder()
         .user_agent("webclaw-software-manager/0.1")
-        .timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(5))
         .build()
         .expect("build reqwest client")
 });
@@ -126,22 +126,14 @@ fn item_from_entry(entry: SoftwareEntry, platform: String) -> CatalogItem {
     }
 }
 
-fn icon_to_data_url(path: &std::path::Path) -> Option<String> {
-    let bytes = std::fs::read(path).ok()?;
-    use base64::Engine;
-    let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
-    let mime = if path.extension().and_then(|e| e.to_str()) == Some("svg") {
-        "image/svg+xml"
-    } else {
-        "image/png"
-    };
-    Some(format!("data:{};base64,{}", mime, b64))
-}
-
 fn resolve_icon(icon: &str, app: &AppHandle) -> String {
     // If the file already exists at the manifest path (e.g. /opt/ on Linux), use as-is
     if std::path::Path::new(icon).exists() {
-        return icon.to_string();
+        let path = std::path::Path::new(icon);
+        return path
+            .canonicalize()
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|_| icon.to_string());
     }
     let filename = std::path::Path::new(icon)
         .file_name()
@@ -150,7 +142,7 @@ fn resolve_icon(icon: &str, app: &AppHandle) -> String {
     if filename.is_empty() {
         return icon.to_string();
     }
-    // Candidate search paths — try each, return first data URL that works
+    // Candidate search paths — try each, return the first file path Tauri can serve.
     let mut candidates: Vec<std::path::PathBuf> = Vec::new();
     // 1. resource_dir / on-demand-icons / filename (production bundle)
     if let Ok(resource_dir) = app.path().resource_dir() {
@@ -173,9 +165,10 @@ fn resolve_icon(icon: &str, app: &AppHandle) -> String {
     }
     for candidate in &candidates {
         if candidate.exists() {
-            if let Some(data_url) = icon_to_data_url(candidate) {
-                return data_url;
-            }
+            return candidate
+                .canonicalize()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_else(|_| candidate.to_string_lossy().to_string());
         }
     }
     icon.to_string()
@@ -210,7 +203,9 @@ pub async fn detect_installed(
     let (manifest, _) = load_effective_manifest(&app)
         .await
         .map_err(|e| e.to_string())?;
-    let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
+    let cores = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(2);
     let sem = std::sync::Arc::new(tokio::sync::Semaphore::new((cores * 2).clamp(4, 16)));
     let mut handles = Vec::new();
     for (entry, spec) in platform_entries(manifest, &platform) {
@@ -245,14 +240,15 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
         .map_err(|e| e.to_string())?;
     let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
     let sem = std::sync::Arc::new(tokio::sync::Semaphore::new((cores * 2).clamp(4, 16)));
-    let mut handles = Vec::new();
+    let mut tasks = tokio::task::JoinSet::new();
     for (entry, spec) in platform_entries(manifest, &platform) {
         let platform_key = platform.clone();
-        let permit = std::sync::Arc::clone(&sem).acquire_owned().await.unwrap();
-        handles.push(tokio::spawn(async move {
-            let _permit = permit;
+        let sem = std::sync::Arc::clone(&sem);
+        tasks.spawn(async move {
+            let _permit = sem.acquire_owned().await.unwrap();
             let mut item = item_from_entry(entry, platform_key);
-            let (installed, latest) = tokio::join!(detect_one(&spec.detect), latest_one(&spec.latest));
+            let (installed, latest) =
+                tokio::join!(detect_one(&spec.detect), latest_one(&spec.latest));
             match installed {
                 Ok(version) => item.installed_version = version,
                 Err(e) => item.error = Some(e.to_string()),
@@ -266,9 +262,17 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
                 item.latest_version.as_deref(),
             );
             item
-        }));
+        });
     }
-    collect_items(handles).await
+    let mut items = Vec::new();
+    while let Some(joined) = tasks.join_next().await {
+        if let Ok(item) = joined {
+            app.emit("catalog-item-update", &item).ok();
+            items.push(item);
+        }
+    }
+    items.sort_by(|a, b| a.group.cmp(&b.group).then(a.name.cmp(&b.name)));
+    Ok(items)
 }
 
 async fn collect_items(
