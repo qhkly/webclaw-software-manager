@@ -28,16 +28,6 @@ const GROUP_META = {
   office: { label: '办公效率', sub: '文档、笔记与生产力工具', icon: 'fileText' },
 };
 
-const FALLBACK_COLORS = ['#2f6f9f', '#5b6cdb', '#1f8a5b', '#b5654a', '#8a5bd4', '#2c7d77', '#9a6320'];
-
-function hashText(text) {
-  return String(text || '').split('').reduce((n, ch) => ((n << 5) - n + ch.charCodeAt(0)) | 0, 0);
-}
-
-function itemColor(item) {
-  return FALLBACK_COLORS[Math.abs(hashText(item.id || item.name)) % FALLBACK_COLORS.length];
-}
-
 function itemGlyph(item) {
   const words = String(item.name || '?').replace(/[^a-zA-Z0-9\u4e00-\u9fa5 ]/g, ' ').trim().split(/\s+/);
   if (!words.length) return '?';
@@ -74,11 +64,7 @@ function MiniIcon({ name, size = 14, stroke = 1.6 }) {
 
 function StoreIcon({ item, size }) {
   const [imgErr, setImgErr] = React.useState(false);
-  const style = { background: itemColor(item) };
-  if (size) {
-    style.width = size;
-    style.height = size;
-  }
+  const style = size ? { width: size, height: size } : undefined;
   return (
     <div className="app-icon" style={style}>
       {item.iconUrl && !imgErr
@@ -147,7 +133,7 @@ function Hero({ item, onInstall, onUpgrade, onRecheck }) {
     return <button className="hero-btn" onClick={() => onRecheck(item.id)}><MiniIcon name="refresh" size={15}/> 重新检测</button>;
   })();
   return (
-    <div className="hero" style={{ background: `linear-gradient(120deg, ${shade(itemColor(item), 16)}, ${shade(itemColor(item), -32)})` }}>
+    <div className="hero">
       <div className="hero-watermark">{itemGlyph(item)}</div>
       <div className="hero-eyebrow">本周精选 · {GROUP_META[item.group]?.label || item.category}</div>
       <div className="hero-title">{item.name}</div>
@@ -575,18 +561,6 @@ function stringifyError(e) {
 function hexToRgb(h) {
   const m = h.replace('#', '').match(/.{2}/g);
   return m ? m.map(x => parseInt(x, 16)) : [0, 0, 0];
-}
-
-function rgbToHex(r, g, b) {
-  return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
-}
-
-function shade(hex, pct) {
-  const [r, g, b] = hexToRgb(hex);
-  const f = pct / 100;
-  return rgbToHex(r + (f < 0 ? r * f : (255 - r) * f),
-                  g + (f < 0 ? g * f : (255 - g) * f),
-                  b + (f < 0 ? b * f : (255 - b) * f));
 }
 
 function tint(hex, dark) {
