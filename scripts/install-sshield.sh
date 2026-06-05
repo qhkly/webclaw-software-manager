@@ -24,17 +24,34 @@ TAG=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
 [ -z "$TAG" ] && echo "[ERROR] 无法获取版本" && exit 1
 
 echo "[INFO] 查询 ${REPO} v${TAG} 的 Linux deb 资源..."
-URL=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/v${TAG}" 2>/dev/null \
-    | ARCH="$ARCH" python3 -c "
+
+# 通过 GitHub 网页端 expanded_assets 发现资源（走 github.com，避开 api.github.com 未认证限流）
+# 注意：deb 文件名的版本号/前缀可能与 release tag 不一致，必须动态发现而非拼接
+URL=$(curl -fsSL -H "User-Agent: Mozilla/5.0" \
+    "https://github.com/${REPO}/releases/expanded_assets/v${TAG}" 2>/dev/null \
+    | grep -oE "/${REPO}/releases/download/[^\"]+_${ARCH}\.deb" | head -n1 || true)
+[ -n "$URL" ] && URL="https://github.com${URL}"
+
+if [ -z "$URL" ]; then
+    echo "[WARN] 网页端资源发现失败，回退到 GitHub API..."
+    URL=$(curl -fsSL -H "User-Agent: webclaw-software-manager/0.1" \
+        "https://api.github.com/repos/${REPO}/releases/tags/v${TAG}" 2>/dev/null \
+        | ARCH="$ARCH" python3 -c "
 import json, sys, os
-data = json.load(sys.stdin)
+raw = sys.stdin.read().strip()
+if not raw:
+    sys.exit(0)
+try:
+    data = json.loads(raw)
+except Exception:
+    sys.exit(0)
 arch = os.environ.get('ARCH', 'amd64')
 for a in data.get('assets', []):
-    name = a['name']
-    if name.endswith(f'_{arch}.deb'):
+    if a.get('name', '').endswith(f'_{arch}.deb'):
         print(a['browser_download_url'])
         break
-")
+" 2>/dev/null || echo "")
+fi
 
 if [ -z "$URL" ]; then
     echo "[ERROR] 未找到 ${ARCH} 架构的 .deb 文件"

@@ -82,7 +82,15 @@ install_main() {
 
     # 从 metadata 提取下载 URL（使用已有的 METADATA）
     # 优先使用对应架构，否则使用通用 linux 版本
-    DOWNLOAD_URL=$(echo "$METADATA" | python3 -c "import json, sys; data = json.load(sys.stdin); assets = data.get('assets', {}); print(assets.get('${R2_ARCH_KEY}', assets.get('linux', {})).get('url', ''))")
+    DOWNLOAD_URL=$(echo "$METADATA" | python3 -c "
+import json, sys
+raw = sys.stdin.read().strip()
+try:
+    data = json.loads(raw) if raw else {}
+except Exception:
+    data = {}
+assets = data.get('assets', {})
+print(assets.get('${R2_ARCH_KEY}', assets.get('linux', {})).get('url', ''))" 2>/dev/null || echo "")
 
     if [ -z "$DOWNLOAD_URL" ]; then
         echo "[ERROR] 无法找到 ${R2_ARCH_KEY} 的下载链接"
