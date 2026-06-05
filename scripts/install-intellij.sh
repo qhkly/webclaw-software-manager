@@ -15,18 +15,22 @@ fi
 
 ARCH=$(dpkg --print-architecture)
 case "$ARCH" in
-    amd64) ARCH_KEY="x86_64"; ARCH_SUFFIX="" ;;
-    arm64) ARCH_KEY="aarch64"; ARCH_SUFFIX="-aarch64" ;;
+    amd64|arm64) ;;
     *) echo "[ERROR] 不支持的架构: $ARCH"; exit 1 ;;
 esac
 
 echo "[INFO] 获取 IntelliJ IDEA Community 最新版本..."
-VERSION=$(curl -fsSL "https://data.services.jetbrains.com/products/releases?code=IIC&latest=true&type=release" \
-    | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['IIC'][0]['version'])" 2>/dev/null || echo "")
+API_RESPONSE=$(curl -fsSL "https://data.services.jetbrains.com/products/releases?code=IIC&latest=true&type=release")
+VERSION=$(echo "$API_RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['IIC'][0]['version'])" 2>/dev/null || echo "")
 [ -z "$VERSION" ] && echo "[ERROR] 无法获取最新版本" && exit 1
 echo "[INFO] 安装 IntelliJ IDEA Community v${VERSION} (${ARCH})"
 
-DOWNLOAD_URL="https://download.jetbrains.com/idea/ideaIC-${VERSION}${ARCH_SUFFIX}.tar.gz"
+if [ "$ARCH" = "arm64" ]; then
+    DOWNLOAD_URL=$(echo "$API_RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['IIC'][0]['downloads']['linuxARM64']['link'])" 2>/dev/null || echo "")
+else
+    DOWNLOAD_URL=$(echo "$API_RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['IIC'][0]['downloads']['linux']['link'])" 2>/dev/null || echo "")
+fi
+[ -z "$DOWNLOAD_URL" ] && echo "[ERROR] 无法获取下载链接" && exit 1
 echo "[INFO] 下载: ${DOWNLOAD_URL}"
 
 TMP_DIR=$(mktemp -d)

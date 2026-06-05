@@ -397,7 +397,7 @@ function App() {
   const commonShelfProps = { selected, onSelect, onInstall, onUpgrade, onRecheck };
   let content;
   if (!inited) {
-    content = <div className="empty"><div className="ico"><MiniIcon name="refresh" size={32}/></div><div className="t">正在初始化...</div><div className="s">正在读取平台与软件清单</div></div>;
+    content = <div className="empty"><div className="ico spin-ico"><MiniIcon name="refresh" size={32}/></div><div className="t">正在初始化...</div><div className="s">正在读取平台与软件清单</div></div>;
   } else if (q) {
     content = searchResults.length
       ? <div className="shelf-grid">{searchResults.map(item => <StoreCard key={item.id} item={item} {...commonShelfProps}/>)}</div>

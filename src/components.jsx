@@ -40,7 +40,7 @@ const ClawLogo = ({ size = 34 }) => (
 const MANIFEST_SOURCE_LABELS = { remote: '远端', cache: '缓存', bundled: '内置' };
 
 const SCRIPTS_STATE_CFG = {
-  updating: { cls: 'scripts-updating', icon: 'refresh', iconCls: 'spin', label: '脚本更新中' },
+  updating: { cls: 'scripts-updating', icon: 'refresh', iconCls: 'spin-ico', label: '脚本更新中' },
   updated:  { cls: 'scripts-ok',       icon: 'check',   iconCls: '',     label: '脚本已更新' },
   warn:     { cls: 'scripts-warn',     icon: 'alert',   iconCls: '',     label: '脚本更新失败' },
 };
@@ -81,7 +81,7 @@ const Header = ({ platformLabel, manifestSource, counts, lastScan, onScan, scann
     </button>
     <button className={`btn ${scanning ? '' : 'btn-primary'}`} onClick={onScan} disabled={scanning}>
       {scanning
-        ? <><Icon name="refresh" size={14} stroke={2}/> 扫描中...</>
+        ? <><span className="spin-ico"><Icon name="refresh" size={14} stroke={2}/></span> 扫描中...</>
         : <><Icon name="scan" size={14} stroke={2}/> 扫描</>}
     </button>
   </header>
@@ -313,7 +313,7 @@ const ActionModal = ({ item, batch, action, actionState, onClose, onConfirm }) =
           <>
             <div className="modal-body">
               <div className="callout callout-info">
-                <span className="callout-icon"><Icon name="refresh" size={16}/></span>
+                <span className="callout-icon spin-ico"><Icon name="refresh" size={16}/></span>
                 <div>正在{label} · {stage}</div>
               </div>
               <div className="progress"><div style={{ width: `${percent}%` }}/></div>

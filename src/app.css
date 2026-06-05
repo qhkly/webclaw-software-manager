@@ -474,6 +474,12 @@ body { font-family: var(--font); background: #0d0d10; -webkit-font-smoothing: an
 /* ===================== Animations ===================== */
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes scan-sweep { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
-.spin-ico { animation: spin .8s linear infinite; display: flex; }
+.spin-ico {
+  animation: spin .8s linear infinite;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+}
 .dots-loading::after { content: ""; animation: dots 1.2s steps(4, end) infinite; }
 @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
