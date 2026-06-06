@@ -867,6 +867,37 @@
       }
     },
     {
+      "id": "webstorm",
+      "name": "WebStorm",
+      "name_zh": "WebStorm",
+      "category": "dev",
+      "group": "dev",
+      "risk": "low",
+      "desc": "JetBrains JavaScript/TypeScript 集成开发环境",
+      "icon": "/opt/on-demand-icons/webstorm.png",
+      "platforms": {
+        "container": {
+          "detect": {
+            "type": "binary",
+            "path": "/opt/webstorm/bin/webstorm.sh"
+          },
+          "latest": {
+            "type": "shell",
+            "cmd": "curl -fsSL 'https://data.services.jetbrains.com/products/releases?code=WS&latest=true&type=release' | python3 -c \"import json,sys; d=json.load(sys.stdin); print(d['WS'][0]['version'])\" 2>/dev/null || echo \"\"",
+            "version_regex": "([0-9]+\\.[0-9]+\\.?[0-9]*)"
+          },
+          "install": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webstorm.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-webstorm.sh"
+          }
+        }
+      }
+    },
+    {
       "id": "eclipse",
       "name": "Eclipse IDE",
       "name_zh": "Eclipse IDE",
