@@ -18,10 +18,11 @@ pub fn run() {
             install_software,
             upgrade_software,
         ])
-        .setup(|app| {
+        .setup(|_app| {
             #[cfg(target_os = "linux")]
             {
                 use tauri::Manager;
+                let app = _app;
                 if let Some(window) = app.get_webview_window("main") {
                     // Optimized wheel event handler for WebKitGTK
                     window.eval("

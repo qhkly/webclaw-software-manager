@@ -50,15 +50,22 @@ jobs:
         run: npm ci
 
       - name: Build (arm64)
-        run: npm run build -- --target aarch64-apple-darwin
+        run: npm run build -- --target aarch64-apple-darwin --bundles app
+
+      - name: Archive app bundle
+        shell: bash
+        run: |
+          version=$(python3 -c "import json; print(json.load(open('package.json'))['version'])")
+          ditto -c -k --sequesterRsrc --keepParent \
+            "src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Webclaw Software Manager.app" \
+            "src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Webclaw Software Manager_${version}_arm64.app.zip"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-arm64
           path: |
-            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
-            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.zip
 
   build-macos-x64:
     name: macOS (x64 Intel)
@@ -103,15 +110,22 @@ jobs:
         run: npm ci
 
       - name: Build (x64)
-        run: npm run build -- --target x86_64-apple-darwin
+        run: npm run build -- --target x86_64-apple-darwin --bundles app
+
+      - name: Archive app bundle
+        shell: bash
+        run: |
+          version=$(python3 -c "import json; print(json.load(open('package.json'))['version'])")
+          ditto -c -k --sequesterRsrc --keepParent \
+            "src-tauri/target/x86_64-apple-darwin/release/bundle/macos/Webclaw Software Manager.app" \
+            "src-tauri/target/x86_64-apple-darwin/release/bundle/macos/Webclaw Software Manager_${version}_x64.app.zip"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-x64
           path: |
-            src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
-            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.tar.gz
+            src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app.zip
 
   build-linux-x64:
     name: Linux (x64)
