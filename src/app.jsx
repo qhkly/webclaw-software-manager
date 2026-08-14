@@ -76,7 +76,7 @@ function StoreIcon({ item, size }) {
 
 function StoreButton({ item, onInstall, onUpgrade, onRecheck }) {
   if (item.state === 'not_installed') {
-    return <button className="pill-btn" onClick={() => onInstall(item)}>获取</button>;
+    return <button className="pill-btn" onClick={() => onInstall(item)}>安装</button>;
   }
   if (item.state === 'upgradable') {
     return <button className="pill-btn" onClick={() => onUpgrade(item)}>更新</button>;
@@ -87,7 +87,28 @@ function StoreButton({ item, onInstall, onUpgrade, onRecheck }) {
   return <button className="pill-btn disabled" onClick={() => onRecheck(item.id)}>检测</button>;
 }
 
-function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck }) {
+function ProductLinks({ item, onOpenExternal, compact = false }) {
+  if (!item.store_slug && !item.official_url) return null;
+  const storeUrl = item.store_slug
+    ? `https://store.qhkly.com/products/${encodeURIComponent(item.store_slug)}`
+    : null;
+  return (
+    <div className={`product-links ${compact ? 'compact' : ''}`}>
+      {item.official_url && (
+        <button className="product-link" onClick={() => onOpenExternal(item.official_url, `${item.name} 官网`)}>
+          产品官网
+        </button>
+      )}
+      {storeUrl && (
+        <button className="product-link" onClick={() => onOpenExternal(storeUrl, `${item.name} 套餐`)}>
+          套餐与购买
+        </button>
+      )}
+    </div>
+  );
+}
+
+function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal }) {
   const state = mapState(item.state);
   let meta;
   if (state === 'checking') {
@@ -115,6 +136,7 @@ function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck }
         <div className="sc-name">{item.name}</div>
         <div className="sc-desc">{item.desc || item.group || item.category}</div>
         <div className="sc-meta">{meta}</div>
+        <ProductLinks item={item} onOpenExternal={onOpenExternal} compact/>
       </div>
       <div className="sc-action">
         <button className={`card-checkbox ${selected ? 'on' : ''}`} onClick={() => onSelect(item.id)} title={selected ? '取消选中' : '加入批量'}/>
@@ -124,10 +146,10 @@ function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck }
   );
 }
 
-function Hero({ item, onInstall, onUpgrade, onRecheck }) {
+function Hero({ item, onInstall, onUpgrade, onRecheck, onOpenExternal }) {
   if (!item) return null;
   const action = (() => {
-    if (item.state === 'not_installed') return <button className="hero-btn" onClick={() => onInstall(item)}><MiniIcon name="download" size={15}/> 免费获取</button>;
+    if (item.state === 'not_installed') return <button className="hero-btn" onClick={() => onInstall(item)}><MiniIcon name="download" size={15}/> 安装</button>;
     if (item.state === 'upgradable') return <button className="hero-btn" onClick={() => onUpgrade(item)}><MiniIcon name="download" size={15}/> 更新到 {item.latest_version || '最新版'}</button>;
     if (item.state === 'up_to_date') return <button className="hero-btn" disabled><MiniIcon name="check" size={15}/> 已是最新</button>;
     return <button className="hero-btn" onClick={() => onRecheck(item.id)}><MiniIcon name="refresh" size={15}/> 重新检测</button>;
@@ -138,12 +160,15 @@ function Hero({ item, onInstall, onUpgrade, onRecheck }) {
       <div className="hero-eyebrow">本周精选 · {GROUP_META[item.group]?.label || item.category}</div>
       <div className="hero-title">{item.name}</div>
       <div className="hero-pitch">{item.desc || '来自 WebClaw 软件源的精选工具，可按需安装和更新。'}</div>
-      {action}
+      <div className="hero-actions">
+        {action}
+        <ProductLinks item={item} onOpenExternal={onOpenExternal}/>
+      </div>
     </div>
   );
 }
 
-function Shelf({ title, sub, items, more, onMore, selected, onSelect, onInstall, onUpgrade, onRecheck }) {
+function Shelf({ title, sub, items, more, onMore, selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal }) {
   if (!items.length) return null;
   return (
     <div className="shelf">
@@ -162,6 +187,7 @@ function Shelf({ title, sub, items, more, onMore, selected, onSelect, onInstall,
             onInstall={onInstall}
             onUpgrade={onUpgrade}
             onRecheck={onRecheck}
+            onOpenExternal={onOpenExternal}
           />
         ))}
       </div>
@@ -321,6 +347,16 @@ function App() {
     setModal({ item, action: 'upgrade' });
   };
 
+  const onOpenExternal = React.useCallback(async (url, label) => {
+    if (!tauriInvoke || !url) return;
+    try {
+      await tauriInvoke('open_external_url', { url });
+      addLog(`已打开${label ? `：${label}` : '外部链接'}`, 'sys');
+    } catch (error) {
+      addLog(`打开链接失败：${stringifyError(error)}`, 'err');
+    }
+  }, [addLog]);
+
   const onRecheck = React.useCallback(() => {
     if (platform?.key) doScan(platform.key);
   }, [platform, doScan]);
@@ -394,7 +430,7 @@ function App() {
     : section === 'installed' ? '已安装'
     : (groups.find(g => g.key === section)?.label || '软件商店');
 
-  const commonShelfProps = { selected, onSelect, onInstall, onUpgrade, onRecheck };
+  const commonShelfProps = { selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal };
   let content;
   if (!inited) {
     content = <div className="empty"><div className="ico spin-ico"><MiniIcon name="refresh" size={32}/></div><div className="t">正在初始化...</div><div className="s">正在读取平台与软件清单</div></div>;
@@ -405,7 +441,7 @@ function App() {
   } else if (section === 'featured') {
     content = (
       <>
-        <Hero item={featured} onInstall={onInstall} onUpgrade={onUpgrade} onRecheck={onRecheck}/>
+        <Hero item={featured} onInstall={onInstall} onUpgrade={onUpgrade} onRecheck={onRecheck} onOpenExternal={onOpenExternal}/>
         <Shelf title="需要更新" sub={upgradable.length ? `${upgradable.length} 个工具有新版本` : '所有工具已是最新'} items={upgradable} more="查看全部" onMore={() => setSection('updates')} {...commonShelfProps}/>
         {groups.map(g => (
           <Shelf key={g.key} title={g.label} sub={g.sub} items={sortedItems.filter(i => i.group === g.key)} more="查看全部" onMore={() => setSection(g.key)} {...commonShelfProps}/>

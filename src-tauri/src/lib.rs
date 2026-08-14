@@ -7,8 +7,14 @@ use commands::software::*;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_opener::Builder::new()
+                .open_js_links_on_click(false)
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![
             detect_platform,
+            open_external_url,
             refresh_manifest,
             refresh_scripts,
             get_manifest_source,

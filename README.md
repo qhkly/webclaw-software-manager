@@ -69,6 +69,22 @@ Tauri 后端 (Rust)
 }
 ```
 
+`store_slug` 和 `official_url` 均为可选字段：
+
+- `store_slug` 只保存 Store 商品标识，界面据此打开 `https://store.qhkly.com/products/{store_slug}`。
+- `official_url` 只用于拥有独立官网的旗舰产品。
+- 软件管理器不保存价格、套餐或支付状态。价格与购买归 Store 管理，账号权益归 Platform 管理。
+
+例如 AI Studio 的清单项可以包含：
+
+```json
+{
+  "id": "webcode-ai-studio",
+  "store_slug": "webcode-ai-studio",
+  "official_url": "https://ai-studio.qhkly.com"
+}
+```
+
 ActionSpec 支持的类型：`NpmGlobal` / `NpmRegistry` / `Apt` / `AptPolicy` / `CustomScript` / `Shell` / `Static` / `Dpkg`
 
 ## 开发

@@ -32,6 +32,10 @@ pub struct SoftwareEntry {
     pub desc: String,
     #[serde(default)]
     pub icon: Option<String>,
+    #[serde(default)]
+    pub store_slug: Option<String>,
+    #[serde(default)]
+    pub official_url: Option<String>,
     pub platforms: HashMap<String, PlatformSoftwareSpec>,
 }
 
@@ -93,6 +97,8 @@ pub struct CatalogItem {
     pub risk: String,
     pub desc: String,
     pub icon: Option<String>,
+    pub store_slug: Option<String>,
+    pub official_url: Option<String>,
     pub platform: String,
     pub installed_version: Option<String>,
     pub latest_version: Option<String>,
@@ -118,6 +124,8 @@ fn item_from_entry(entry: SoftwareEntry, platform: String) -> CatalogItem {
         risk: entry.risk,
         desc: entry.desc,
         icon: entry.icon,
+        store_slug: entry.store_slug,
+        official_url: entry.official_url,
         platform,
         installed_version: None,
         latest_version: None,

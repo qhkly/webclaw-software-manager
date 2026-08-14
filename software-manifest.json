@@ -1,6 +1,6 @@
 {
   "$schema": "./software-manifest.schema.json",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "_remote_url": "https://raw.githubusercontent.com/qhkly/webclaw-software-manager/main/software-manifest.json",
   "software": [
     {
@@ -375,6 +375,7 @@
       "group": "dev",
       "risk": "low",
       "desc": "Git 仓库管理工具，支持多仓库管理、查看同步状态、GitHub Actions",
+      "store_slug": "git-manager",
       "icon": "/opt/on-demand-icons/webcode-git-manager.png",
       "platforms": {
         "container": {
@@ -495,6 +496,7 @@
       "group": "ai",
       "risk": "low",
       "desc": "Claude Code 多账户快速切换工具",
+      "store_slug": "cc-switch",
       "icon": "/opt/on-demand-icons/cc-switch.png",
       "platforms": {
         "container": {
@@ -570,6 +572,7 @@
       "group": "media",
       "risk": "low",
       "desc": "AI 驱动的字幕翻译与合成工具",
+      "store_slug": "opentypeless",
       "icon": "/opt/on-demand-icons/opentypeless.png",
       "platforms": {
         "container": {
@@ -721,6 +724,8 @@
       "group": "system",
       "risk": "low",
       "desc": "WebClaw 桌面启动器（容器管理）",
+      "store_slug": "webclaw-launcher",
+      "official_url": "https://webclaw.qhkly.com",
       "platforms": {
         "container": {
           "detect": {
@@ -752,6 +757,8 @@
       "group": "ai",
       "risk": "low",
       "desc": "AI CLI 会话管理器",
+      "store_slug": "webcode-ai-studio",
+      "official_url": "https://ai-studio.qhkly.com",
       "icon": "/opt/on-demand-icons/webcode-ai-studio.png",
       "platforms": {
         "container": {
@@ -965,6 +972,7 @@
       "group": "dev",
       "risk": "low",
       "desc": "多语言 i18n 翻译文件管理工具",
+      "store_slug": "i18n-manager",
       "platforms": {
         "container": {
           "detect": {
@@ -992,6 +1000,7 @@
       "group": "dev",
       "risk": "low",
       "desc": "项目图标和资源文件管理工具",
+      "store_slug": "icon-manager",
       "platforms": {
         "container": {
           "detect": {
@@ -1019,6 +1028,7 @@
       "group": "dev",
       "risk": "low",
       "desc": "自动化版本发布和 changelog 生成工具",
+      "store_slug": "release-tool",
       "platforms": {
         "container": {
           "detect": {
@@ -1046,6 +1056,7 @@
       "group": "network",
       "risk": "low",
       "desc": "IP 地址防护和管理工具",
+      "store_slug": "ipshield",
       "platforms": {
         "container": {
           "detect": {
@@ -1073,6 +1084,7 @@
       "group": "network",
       "risk": "low",
       "desc": "SSH 连接安全补丁和管理工具",
+      "store_slug": "ssh-patch-manager",
       "platforms": {
         "container": {
           "detect": {
@@ -1100,6 +1112,7 @@
       "group": "ai",
       "risk": "low",
       "desc": "AI 驱动的文件夹自动整理工具",
+      "store_slug": "ai-folder-organizer",
       "platforms": {
         "container": {
           "detect": {
@@ -1127,6 +1140,7 @@
       "group": "office",
       "risk": "low",
       "desc": "WebClaw 日历和日程管理应用",
+      "store_slug": "webclaw-calendar",
       "platforms": {
         "container": {
           "detect": {
@@ -1154,6 +1168,7 @@
       "group": "graphics",
       "risk": "low",
       "desc": "将位图转换为 SVG 矢量图形的工具",
+      "store_slug": "image-to-svg",
       "platforms": {
         "container": {
           "detect": {
@@ -1181,6 +1196,7 @@
       "group": "media",
       "risk": "low",
       "desc": "WebClaw 视频创作和编辑工具",
+      "store_slug": "webclaw-video-creator",
       "platforms": {
         "container": {
           "detect": {
