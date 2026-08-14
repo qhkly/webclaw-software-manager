@@ -22,3 +22,10 @@ anyhow = "1"
 once_cell = "1"
 chrono = { version = "0.4", features = ["serde"] }
 dirs = "5"
+# 登录回调验签。刻意不用 openssl：CI 要出 macOS×2 / Linux×2 / Windows 五种产物，
+# 纯 Rust 实现省掉交叉编译时的系统库依赖。
+rsa = "0.9"
+# oid：Pkcs1v15Sign::new::<Sha256> 需要摘要算法的 OID 才能拼出 PKCS#1 v1.5 的 DigestInfo
+sha2 = { version = "0.10", features = ["oid"] }
+base64 = "0.22"
+rand = "0.8"

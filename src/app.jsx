@@ -87,11 +87,14 @@ function StoreButton({ item, onInstall, onUpgrade, onRecheck }) {
   return <button className="pill-btn disabled" onClick={() => onRecheck(item.id)}>检测</button>;
 }
 
-function ProductLinks({ item, onOpenExternal, compact = false }) {
+function ProductLinks({ item, onOpenExternal, entitlement, compact = false }) {
   if (!item.store_slug && !item.official_url) return null;
   const storeUrl = item.store_slug
     ? `https://store.qhkly.com/products/${encodeURIComponent(item.store_slug)}`
     : null;
+  // entitlement 为 undefined 表示未登录/权益未知，此时保持中性文案
+  const storeLabel = entitlement === undefined ? '套餐与购买'
+    : entitlement ? '查看套餐' : '前往购买';
   return (
     <div className={`product-links ${compact ? 'compact' : ''}`}>
       {item.official_url && (
@@ -101,14 +104,38 @@ function ProductLinks({ item, onOpenExternal, compact = false }) {
       )}
       {storeUrl && (
         <button className="product-link" onClick={() => onOpenExternal(storeUrl, `${item.name} 套餐`)}>
-          套餐与购买
+          {storeLabel}
         </button>
       )}
     </div>
   );
 }
 
-function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal }) {
+function formatExpiry(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('zh-CN');
+}
+
+/**
+ * 权益徽章。只在已登录且该条目关联了 store 商品时出现——未登录时整个界面
+ * 应该和接入前完全一样，不能因为没登录就显得功能缺失。
+ *
+ * 它只是提示，不影响安装按钮。真正的授权校验由各软件自己启动时做。
+ */
+function EntitlementBadge({ item, entitlement }) {
+  if (!item.store_slug || entitlement === undefined) return null;
+  if (!entitlement) return <span className="ent-badge">未购买</span>;
+  const expiry = formatExpiry(entitlement.expires_at);
+  return (
+    <span className="ent-badge owned" title={expiry ? `有效期至 ${expiry}` : '永久授权'}>
+      已拥有{expiry ? ` · ${expiry}` : ''}
+    </span>
+  );
+}
+
+function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal, entitlementOf }) {
+  const entitlement = entitlementOf(item);
   const state = mapState(item.state);
   let meta;
   if (state === 'checking') {
@@ -133,10 +160,13 @@ function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, 
     <div className={`store-card ${selected ? 'selected' : ''}`}>
       <StoreIcon item={item}/>
       <div className="sc-body">
-        <div className="sc-name">{item.name}</div>
+        <div className="sc-name">
+          <span className="sc-name-text">{item.name}</span>
+          <EntitlementBadge item={item} entitlement={entitlement}/>
+        </div>
         <div className="sc-desc">{item.desc || item.group || item.category}</div>
         <div className="sc-meta">{meta}</div>
-        <ProductLinks item={item} onOpenExternal={onOpenExternal} compact/>
+        <ProductLinks item={item} onOpenExternal={onOpenExternal} entitlement={entitlement} compact/>
       </div>
       <div className="sc-action">
         <button className={`card-checkbox ${selected ? 'on' : ''}`} onClick={() => onSelect(item.id)} title={selected ? '取消选中' : '加入批量'}/>
@@ -146,8 +176,9 @@ function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, 
   );
 }
 
-function Hero({ item, onInstall, onUpgrade, onRecheck, onOpenExternal }) {
+function Hero({ item, onInstall, onUpgrade, onRecheck, onOpenExternal, entitlementOf }) {
   if (!item) return null;
+  const entitlement = entitlementOf(item);
   const action = (() => {
     if (item.state === 'not_installed') return <button className="hero-btn" onClick={() => onInstall(item)}><MiniIcon name="download" size={15}/> 安装</button>;
     if (item.state === 'upgradable') return <button className="hero-btn" onClick={() => onUpgrade(item)}><MiniIcon name="download" size={15}/> 更新到 {item.latest_version || '最新版'}</button>;
@@ -158,17 +189,36 @@ function Hero({ item, onInstall, onUpgrade, onRecheck, onOpenExternal }) {
     <div className="hero">
       <div className="hero-watermark">{itemGlyph(item)}</div>
       <div className="hero-eyebrow">本周精选 · {GROUP_META[item.group]?.label || item.category}</div>
-      <div className="hero-title">{item.name}</div>
+      <div className="hero-title">{item.name}<EntitlementBadge item={item} entitlement={entitlement}/></div>
       <div className="hero-pitch">{item.desc || '来自 WebClaw 软件源的精选工具，可按需安装和更新。'}</div>
       <div className="hero-actions">
         {action}
-        <ProductLinks item={item} onOpenExternal={onOpenExternal}/>
+        <ProductLinks item={item} onOpenExternal={onOpenExternal} entitlement={entitlement}/>
       </div>
     </div>
   );
 }
 
-function Shelf({ title, sub, items, more, onMore, selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal }) {
+function AccountArea({ auth, busy, onLogin, onLogout }) {
+  if (!auth?.logged_in) {
+    return (
+      <button className="scan-btn" onClick={onLogin} disabled={busy}>
+        <MiniIcon name="store" size={14}/>
+        {busy ? '等待浏览器登录...' : '登录'}
+      </button>
+    );
+  }
+  return (
+    <div className="account-chip" title={auth.email}>
+      <span className="account-email">{auth.email}</span>
+      <button className="account-logout" onClick={onLogout} title="退出登录">
+        <MiniIcon name="x" size={12}/>
+      </button>
+    </div>
+  );
+}
+
+function Shelf({ title, sub, items, more, onMore, selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal, entitlementOf }) {
   if (!items.length) return null;
   return (
     <div className="shelf">
@@ -188,6 +238,7 @@ function Shelf({ title, sub, items, more, onMore, selected, onSelect, onInstall,
             onUpgrade={onUpgrade}
             onRecheck={onRecheck}
             onOpenExternal={onOpenExternal}
+            entitlementOf={entitlementOf}
           />
         ))}
       </div>
@@ -211,6 +262,9 @@ function App() {
   const [scriptsState, setScriptsState] = React.useState(null);
   const [lastScan, setLastScan] = React.useState('');
   const [inited, setInited] = React.useState(false);
+  const [auth, setAuth] = React.useState(null);
+  const [authBusy, setAuthBusy] = React.useState(false);
+  const [entitlements, setEntitlements] = React.useState(null);
 
   const addLog = React.useCallback((msg, tone = 'sys') => {
     setLog(L => [...L, { ts: nowTime(), msg, tone }].slice(-80));
@@ -279,6 +333,14 @@ function App() {
             }
           }).catch(() => setScriptsState('warn'));
         }
+        // 登录态和权益跟扫描并行：权益接口不通不应该拖慢软件清单
+        tauriInvoke('auth_status').then(status => {
+          setAuth(status);
+          if (status.logged_in) {
+            addLog(`已登录：${status.email}`, 'sys');
+            loadEntitlements({ cachedFirst: true });
+          }
+        }).catch(() => { /* 读不到登录态就按未登录处理 */ });
         await doScan(info.key);
       } catch (e) {
         addLog(`初始化失败：${stringifyError(e)}`, 'err');
@@ -287,13 +349,24 @@ function App() {
       }
     }
     init();
-  }, [addLog, doScan]);
+  }, [addLog, doScan, loadEntitlements]);
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-theme', t.dark ? 'dark' : 'light');
     document.documentElement.style.setProperty('--accent', t.accent);
     document.documentElement.style.setProperty('--accent-soft', tint(t.accent, t.dark));
   }, [t.dark, t.accent]);
+
+  /**
+   * 按 store_slug 查权益。
+   *
+   * 三态，不要退化成布尔：undefined = 未登录或权益未知（界面保持中性），
+   * null = 已知未购买，对象 = 已拥有。
+   */
+  const entitlementOf = React.useCallback((item) => {
+    if (!entitlements || !item.store_slug) return undefined;
+    return entitlements.entitlements.find(e => e.product_slug === item.store_slug) || null;
+  }, [entitlements]);
 
   const counts = React.useMemo(() => ({
     total: items.length,
@@ -346,6 +419,63 @@ function App() {
     setActionState(null);
     setModal({ item, action: 'upgrade' });
   };
+
+  /**
+   * 拉权益。先用缓存把界面点亮，再打网络覆盖——权益接口慢或不通时，界面不该干等着。
+   */
+  const loadEntitlements = React.useCallback(async ({ cachedFirst = false } = {}) => {
+    if (!tauriInvoke) return;
+    if (cachedFirst) {
+      try {
+        const cached = await tauriInvoke('get_cached_entitlements');
+        if (cached) setEntitlements(cached);
+      } catch { /* 缓存读不到就等远端 */ }
+    }
+    try {
+      const snapshot = await tauriInvoke('refresh_entitlements');
+      setEntitlements(snapshot);
+      if (snapshot) {
+        const owned = snapshot.entitlements.length;
+        if (snapshot.source === 'cache') {
+          addLog(`权益信息来自本地缓存（${owned} 项），可能不是最新`, 'sys');
+        } else {
+          addLog(`已同步权益：${owned} 项${snapshot.degraded ? '（部分来源不可达，可能不完整）' : ''}`, 'ok');
+        }
+      } else {
+        // token 失效时后端会清掉登录态，这里同步过来
+        setAuth(await tauriInvoke('auth_status'));
+      }
+    } catch (error) {
+      addLog(`获取权益失败：${stringifyError(error)}`, 'err');
+    }
+  }, [addLog]);
+
+  const onLogin = React.useCallback(async () => {
+    if (!tauriInvoke || authBusy) return;
+    setAuthBusy(true);
+    addLog('正在打开浏览器完成登录...', 'sys');
+    try {
+      const status = await tauriInvoke('auth_login');
+      setAuth(status);
+      addLog(`已登录：${status.email}`, 'ok');
+      await loadEntitlements();
+    } catch (error) {
+      addLog(`登录失败：${stringifyError(error)}`, 'err');
+    } finally {
+      setAuthBusy(false);
+    }
+  }, [addLog, authBusy, loadEntitlements]);
+
+  const onLogout = React.useCallback(async () => {
+    if (!tauriInvoke) return;
+    try {
+      setAuth(await tauriInvoke('auth_logout'));
+      setEntitlements(null);
+      addLog('已退出登录', 'sys');
+    } catch (error) {
+      addLog(`退出登录失败：${stringifyError(error)}`, 'err');
+    }
+  }, [addLog]);
 
   const onOpenExternal = React.useCallback(async (url, label) => {
     if (!tauriInvoke || !url) return;
@@ -430,7 +560,7 @@ function App() {
     : section === 'installed' ? '已安装'
     : (groups.find(g => g.key === section)?.label || '软件商店');
 
-  const commonShelfProps = { selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal };
+  const commonShelfProps = { selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal, entitlementOf };
   let content;
   if (!inited) {
     content = <div className="empty"><div className="ico spin-ico"><MiniIcon name="refresh" size={32}/></div><div className="t">正在初始化...</div><div className="s">正在读取平台与软件清单</div></div>;
@@ -441,7 +571,7 @@ function App() {
   } else if (section === 'featured') {
     content = (
       <>
-        <Hero item={featured} onInstall={onInstall} onUpgrade={onUpgrade} onRecheck={onRecheck} onOpenExternal={onOpenExternal}/>
+        <Hero item={featured} onInstall={onInstall} onUpgrade={onUpgrade} onRecheck={onRecheck} onOpenExternal={onOpenExternal} entitlementOf={entitlementOf}/>
         <Shelf title="需要更新" sub={upgradable.length ? `${upgradable.length} 个工具有新版本` : '所有工具已是最新'} items={upgradable} more="查看全部" onMore={() => setSection('updates')} {...commonShelfProps}/>
         {groups.map(g => (
           <Shelf key={g.key} title={g.label} sub={g.sub} items={sortedItems.filter(i => i.group === g.key)} more="查看全部" onMore={() => setSection(g.key)} {...commonShelfProps}/>
@@ -526,6 +656,7 @@ function App() {
               <div className="main-top">
                 <span className="main-title">{sectionTitle}</span>
                 <div className="main-top-spacer"/>
+                <AccountArea auth={auth} busy={authBusy} onLogin={onLogin} onLogout={onLogout}/>
                 {selectedUpgradable > 0 && <button className="scan-btn" onClick={onBatchUpgrade}>{selectedUpgradable} 项更新</button>}
                 <button className="scan-btn" onClick={onRecheck} disabled={scanning || !platform?.key}>
                   <span className={scanning ? 'spin-ico' : ''}><MiniIcon name={scanning ? 'refresh' : 'scan'} size={14}/></span>

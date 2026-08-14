@@ -9,6 +9,7 @@ WebClaw 跨平台软件商店。基于 Tauri 2 + React（无构建工具），�
 - **实时安装进度**：通过 Tauri 事件流（`software-progress`）将命令输出逐行推送到前端
 - **清单热更新**：启动时从远端拉取 `software-manifest.json`，失败自动降级到本地缓存或内置版本
 - **批量升级**：勾选多个可升级项，一键批量操作
+- **账号与权益**：浏览器登录后，关联了 Store 商品的软件会显示「已拥有 / 未购买」
 - **主题与布局**：内置亮/暗色模式切换、三档卡片密度、自定义主色
 
 ## 架构
@@ -23,7 +24,9 @@ Tauri 后端 (Rust)
   ├─ get_platform_catalog   返回当前平台全量软件（初始 state: not_installed）
   ├─ check_latest           并发检测已安装版本 + 最新版本
   ├─ install_software       执行安装，流式推送 software-progress 事件
-  └─ upgrade_software       执行升级，流式推送 software-progress 事件
+  ├─ upgrade_software       执行升级，流式推送 software-progress 事件
+  ├─ auth_login/status/logout   浏览器登录、读取登录态、退出
+  └─ refresh_entitlements   读 Store 权益（get_cached_entitlements 只读缓存）
 
 前端 (React / 无 bundler)
   ├─ src/index.html         入口，Babel 浏览器编译
@@ -86,6 +89,42 @@ Tauri 后端 (Rust)
 ```
 
 ActionSpec 支持的类型：`NpmGlobal` / `NpmRegistry` / `Apt` / `AptPolicy` / `CustomScript` / `Shell` / `Static` / `Dpkg`
+
+## 账号与权益
+
+登录走 Platform 的签名票据回调，和 webclaw-launcher-tauri、webcode-ai-studio 是同一套流程
+（服务端实现见 `webclaw-platform/lib/launcher-callback.ts`），Platform 侧无需为本项目做任何改动。
+
+```
+1. 本机随机端口起一次性 HTTP 监听
+2. 浏览器打开 https://webclaw.qhkly.com/login?callback=http://127.0.0.1:<port>/auth-callback&state=<csrf>
+3. Platform 带 auth_payload / auth_sig 跳回来
+4. 本地验签（RSA-SHA256，公钥内置于 src-tauri/auth-callback-public.pem）
+   并校验 iss / aud / state / exp
+5. 拿 jti 换正式 token → 存到 auth.json（Unix 下 0600）
+6. 带 Bearer token 请求 Store 的 GET /api/licenses 取权益
+```
+
+- **权益只来自 Store 一个域**。Store 内部会去 Platform 合并后台补发的权益，客户端不直接访问 Platform 的权益接口。
+- **权益是提示，不是授权校验**。未购买的软件照样可以安装，卡片只是把主按钮文案改成「前往购买」。真正的授权校验应由各软件自己启动时完成。
+- 权益永远先打网络、失败才回退缓存，并如实标注数据是旧的——和清单那边「缓存优先」的策略相反，因为陈旧的权益会让刚续费的用户看到「未购买」。
+- 未登录时界面与接入前完全一致，不显示任何权益徽章。
+
+本地开发可以用环境变量指向别的后端：
+
+```bash
+WEBCLAW_PLATFORM_URL=http://localhost:3001 WEBCLAW_STORE_URL=http://localhost:3000 npm run tauri dev
+```
+
+**已知限制**：精简版容器镜像没有桌面浏览器，这套回环回调登录用不了，点登录会提示打开浏览器失败。
+
+存储位置（`dirs::data_local_dir()/webclaw-software-manager/`）：
+
+| 文件 | 内容 |
+|---|---|
+| `auth.json` | 登录 token 和邮箱，Unix 下权限 0600 |
+| `entitlements-cache.json` | 权益快照，带 `fetched_at`，仅在网络不通时使用 |
+| `manifest-cache.json` | 软件清单缓存 |
 
 ## 开发
 

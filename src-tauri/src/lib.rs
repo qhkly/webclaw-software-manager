@@ -1,5 +1,7 @@
 mod commands;
 
+use commands::auth::*;
+use commands::entitlements::*;
 use commands::manifest::*;
 use commands::platform::*;
 use commands::software::*;
@@ -23,6 +25,11 @@ pub fn run() {
             check_latest,
             install_software,
             upgrade_software,
+            auth_status,
+            auth_login,
+            auth_logout,
+            refresh_entitlements,
+            get_cached_entitlements,
         ])
         .setup(|_app| {
             #[cfg(target_os = "linux")]
