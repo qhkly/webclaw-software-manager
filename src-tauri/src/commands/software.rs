@@ -20,6 +20,8 @@ static HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
         .expect("build reqwest client")
 });
 
+const USER_NODE_RUNNER: &str = "/usr/local/bin/webclaw-user-node-run";
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct SoftwareEntry {
     pub id: String,
@@ -222,7 +224,7 @@ pub async fn detect_installed(
         handles.push(tokio::spawn(async move {
             let _permit = permit;
             let mut item = item_from_entry(entry, platform_key);
-            match detect_one(&spec.detect).await {
+            match detect_one(&spec.detect, &item.platform).await {
                 Ok(Some(version)) => {
                     item.installed_version = Some(version);
                     item.state = "unknown".into();
@@ -256,7 +258,7 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
             let _permit = sem.acquire_owned().await.unwrap();
             let mut item = item_from_entry(entry, platform_key);
             let (installed, latest) =
-                tokio::join!(detect_one(&spec.detect), latest_one(&spec.latest));
+                tokio::join!(detect_one(&spec.detect, &item.platform), latest_one(&spec.latest));
             match installed {
                 Ok(version) => item.installed_version = version,
                 Err(e) => item.error = Some(e.to_string()),
@@ -296,10 +298,10 @@ async fn collect_items(
     Ok(items)
 }
 
-async fn detect_one(spec: &ActionSpec) -> Result<Option<String>> {
+async fn detect_one(spec: &ActionSpec, platform: &str) -> Result<Option<String>> {
     match spec {
         ActionSpec::Dpkg { pkg } => detect_dpkg(pkg).await,
-        ActionSpec::NpmGlobal { pkg } => detect_npm_global(pkg).await,
+        ActionSpec::NpmGlobal { pkg } => detect_npm_global(pkg, platform).await,
         ActionSpec::Shell { cmd, version_regex } => detect_shell(cmd, version_regex.as_deref()).await,
         ActionSpec::Static { version } => Ok(Some(version.clone())),
         ActionSpec::Binary { path } => {
@@ -337,14 +339,45 @@ async fn detect_dpkg(pkg: &str) -> Result<Option<String>> {
     Ok((!version.is_empty()).then(|| strip_apt_version(&version)))
 }
 
-async fn detect_npm_global(pkg: &str) -> Result<Option<String>> {
-    let out = Command::new("npm")
-        .args(["ls", "-g", pkg, "--depth=0", "--json"])
+fn npm_command(platform: &str, args: &[&str]) -> Vec<String> {
+    let mut command = if platform == "container" {
+        vec![USER_NODE_RUNNER.into(), "npm".into()]
+    } else {
+        vec!["npm".into()]
+    };
+    command.extend(args.iter().map(|arg| (*arg).into()));
+    command
+}
+
+async fn detect_npm_global(pkg: &str, platform: &str) -> Result<Option<String>> {
+    let command = npm_command(platform, &["ls", "-g", pkg, "--depth=0", "--json"]);
+    let out = Command::new(&command[0])
+        .args(&command[1..])
         .output()
         .await
         .context("npm ls spawn failed")?;
-    let stdout = String::from_utf8_lossy(&out.stdout);
-    let json: serde_json::Value = serde_json::from_str(&stdout).unwrap_or(serde_json::Value::Null);
+    parse_npm_global_result(
+        pkg,
+        &out.stdout,
+        &out.stderr,
+        out.status.code().unwrap_or(-1),
+    )
+}
+
+fn parse_npm_global_result(
+    pkg: &str,
+    stdout: &[u8],
+    stderr: &[u8],
+    exit_code: i32,
+) -> Result<Option<String>> {
+    let json: serde_json::Value = serde_json::from_slice(stdout).map_err(|e| {
+        let stderr = String::from_utf8_lossy(stderr);
+        let detail: String = stderr.lines().next().unwrap_or("无 stderr").chars().take(200).collect();
+        anyhow::anyhow!("npm ls 输出不是有效 JSON（退出码 {}）：{}；{}", exit_code, detail, e)
+    })?;
+    if !json.is_object() {
+        return Err(anyhow::anyhow!("npm ls 输出不是 JSON 对象（退出码 {}）", exit_code));
+    }
     let pointer = format!("/dependencies/{}/version", pkg.replace('/', "~1"));
     Ok(json
         .pointer(&pointer)
@@ -473,7 +506,7 @@ async fn execute_software_action(
     } else {
         &platform_spec.install
     };
-    let command = build_action_command(action)?;
+    let command = build_action_command(action, &platform)?;
     let stage = if upgrade { "upgrading" } else { "installing" };
 
     let _ = app.emit(
@@ -498,14 +531,12 @@ async fn execute_software_action(
     Ok(())
 }
 
-fn build_action_command(spec: &ActionSpec) -> Result<Vec<String>, String> {
+fn build_action_command(spec: &ActionSpec, platform: &str) -> Result<Vec<String>, String> {
     match spec {
-        ActionSpec::NpmGlobal { pkg } => Ok(vec![
-            "npm".into(),
-            "install".into(),
-            "-g".into(),
-            format!("{}@latest", pkg),
-        ]),
+        ActionSpec::NpmGlobal { pkg } => Ok(npm_command(
+            platform,
+            &["install", "-g", &format!("{}@latest", pkg)],
+        )),
         ActionSpec::Apt { pkg } => Ok(vec![
             "sudo".into(),
             "apt-get".into(),
@@ -660,4 +691,63 @@ fn version_lt(a: &str, b: &str) -> bool {
         }
     }
     false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn npm_global_uses_user_node_only_in_container() {
+        for pkg in ["@anthropic-ai/claude-code", "@openai/codex", "@google/gemini-cli"] {
+            let action = ActionSpec::NpmGlobal { pkg: pkg.into() };
+            let container = build_action_command(&action, "container").unwrap();
+            assert_eq!(
+                container,
+                vec![USER_NODE_RUNNER, "npm", "install", "-g", &format!("{}@latest", pkg)]
+            );
+            assert!(!container.iter().any(|part| part == "sudo"));
+            assert_eq!(
+                npm_command("container", &["ls", "-g", pkg, "--depth=0", "--json"]),
+                vec![USER_NODE_RUNNER, "npm", "ls", "-g", pkg, "--depth=0", "--json"]
+            );
+            for platform in ["macos", "windows"] {
+                assert_eq!(
+                    build_action_command(&action, platform).unwrap(),
+                    vec!["npm", "install", "-g", &format!("{}@latest", pkg)]
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn npm_ls_valid_json_reports_installed_version() {
+        let stdout = br#"{"dependencies":{"@openai/codex":{"version":"1.2.3"}}}"#;
+        assert_eq!(
+            parse_npm_global_result("@openai/codex", stdout, b"", 0).unwrap(),
+            Some("1.2.3".into())
+        );
+    }
+
+    #[test]
+    fn npm_ls_valid_json_with_nonzero_exit_can_mean_not_installed() {
+        assert_eq!(
+            parse_npm_global_result("@openai/codex", br#"{"dependencies":{}}"#, b"npm ERR! missing", 1).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn npm_ls_runner_failure_is_error() {
+        let error = parse_npm_global_result("@openai/codex", b"", b"NVM unavailable\nmore detail", 127)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("127"));
+        assert!(error.contains("NVM unavailable"));
+    }
+
+    #[test]
+    fn npm_ls_bad_json_with_success_is_error() {
+        assert!(parse_npm_global_result("@openai/codex", b"not json", b"", 0).is_err());
+    }
 }

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
-use super::software::SoftwareEntry;
+use super::software::{ActionSpec, SoftwareEntry};
 
 static HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
     reqwest::Client::builder()
@@ -163,8 +163,86 @@ pub fn platform_entries(
         .into_iter()
         .filter_map(|entry| {
             let spec = entry.platforms.get(platform).cloned();
-            spec.map(|platform_spec| (entry, platform_spec))
+            spec.map(|mut platform_spec| {
+                if platform == "container" {
+                    // Cached/remote manifests from the old Claude installer must not
+                    // bring back its sudo custom-script action.
+                    if entry.id == "claude-code"
+                        && matches!(&platform_spec.install, ActionSpec::CustomScript { script } if script == "/opt/install-scripts/install-claude-code.sh")
+                    {
+                        platform_spec.install = ActionSpec::NpmGlobal {
+                            pkg: "@anthropic-ai/claude-code".into(),
+                        };
+                    }
+                    if entry.id == "claude-code"
+                        && matches!(&platform_spec.upgrade, Some(ActionSpec::CustomScript { script }) if script == "/opt/install-scripts/install-claude-code.sh")
+                    {
+                        platform_spec.upgrade = Some(ActionSpec::NpmGlobal {
+                            pkg: "@anthropic-ai/claude-code".into(),
+                        });
+                    }
+                    // Older manifests detect Codex through the ambient PATH, which
+                    // may contain the system Node installation instead of ubuntu NVM.
+                    if entry.id == "codex"
+                        && matches!(&platform_spec.install, ActionSpec::NpmGlobal { .. })
+                        && matches!(&platform_spec.detect, ActionSpec::Shell { .. })
+                    {
+                        platform_spec.detect = ActionSpec::NpmGlobal {
+                            pkg: "@openai/codex".into(),
+                        };
+                    }
+                }
+                (entry, platform_spec)
+            })
         })
         .collect()
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cached_claude_script_is_routed_to_user_npm() {
+        let mut manifest: ManifestFile =
+            serde_json::from_str(include_str!("../../../software-manifest.json")).unwrap();
+        let claude = manifest
+            .software
+            .iter_mut()
+            .find(|entry| entry.id == "claude-code")
+            .unwrap();
+        let spec = claude.platforms.get_mut("container").unwrap();
+        spec.install = ActionSpec::CustomScript {
+            script: "/opt/install-scripts/install-claude-code.sh".into(),
+        };
+        spec.upgrade = Some(spec.install.clone());
+        let entries = platform_entries(manifest, "container");
+        let (_, spec) = entries
+            .iter()
+            .find(|(entry, _)| entry.id == "claude-code")
+            .unwrap();
+        assert!(matches!(&spec.install, ActionSpec::NpmGlobal { pkg } if pkg == "@anthropic-ai/claude-code"));
+        assert!(matches!(&spec.upgrade, Some(ActionSpec::NpmGlobal { pkg }) if pkg == "@anthropic-ai/claude-code"));
+    }
+
+    #[test]
+    fn cached_codex_shell_detect_uses_nvm_npm() {
+        let mut manifest: ManifestFile =
+            serde_json::from_str(include_str!("../../../software-manifest.json")).unwrap();
+        let codex = manifest
+            .software
+            .iter_mut()
+            .find(|entry| entry.id == "codex")
+            .unwrap();
+        codex.platforms.get_mut("container").unwrap().detect = ActionSpec::Shell {
+            cmd: "codex --version".into(),
+            version_regex: None,
+        };
+        let entries = platform_entries(manifest, "container");
+        let (_, spec) = entries
+            .iter()
+            .find(|(entry, _)| entry.id == "codex")
+            .unwrap();
+        assert!(matches!(&spec.detect, ActionSpec::NpmGlobal { pkg } if pkg == "@openai/codex"));
+    }
+}

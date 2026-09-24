@@ -68,9 +68,8 @@
       "platforms": {
         "container": {
           "detect": {
-            "type": "shell",
-            "cmd": "codex --version 2>&1",
-            "version_regex": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+            "type": "npm-global",
+            "pkg": "@openai/codex"
           },
           "latest": {
             "type": "npm-registry",

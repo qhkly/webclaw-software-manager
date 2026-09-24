@@ -5,6 +5,7 @@ use commands::entitlements::*;
 use commands::manifest::*;
 use commands::platform::*;
 use commands::software::*;
+use commands::supervisor::*;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,6 +26,9 @@ pub fn run() {
             check_latest,
             install_software,
             upgrade_software,
+            supervisor_status,
+            supervisor_restart,
+            supervisor_tail_log,
             auth_status,
             auth_login,
             auth_logout,
