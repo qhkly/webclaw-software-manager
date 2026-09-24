@@ -333,6 +333,7 @@ const ActionModal = ({ item, batch, action, actionState, onClose, onConfirm }) =
                 <span className="callout-icon"><Icon name={doneOk ? 'check' : 'alert'} size={16} stroke={2.4}/></span>
                 <div><strong>{doneOk ? `${label}完成。` : `${label}失败。`}</strong><br/>{targets.length} 项任务已结束。</div>
               </div>
+              {doneOk && actionState?.notice && <div className="callout callout-info">{actionState.notice}</div>}
               <pre className="upgrade-output">{(actionState?.lines || []).join('\n') || '无输出'}</pre>
             </div>
             <div className="modal-foot">

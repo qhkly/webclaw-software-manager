@@ -24,6 +24,7 @@ pub fn run() {
             get_platform_catalog,
             detect_installed,
             check_latest,
+            check_software,
             install_software,
             upgrade_software,
             supervisor_status,

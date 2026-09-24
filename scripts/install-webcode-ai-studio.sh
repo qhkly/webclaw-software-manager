@@ -25,14 +25,10 @@ PROGRESS_FILE="/tmp/webcode_ai_studio_progress"
 R2_BASE="https://launcher.qhkly.com"
 PRODUCT_PATH="launcher/webcode-ai-studio"
 
-# 检查是否已安装（deb 包 或 AppImage 安装方式）
-if dpkg -s ai-cli-studio 2>/dev/null | grep -q "Status: install ok installed"; then
-    echo "[INFO] ai-cli-studio 已安装，跳过"
-    exit 0
-fi
-if [ -f "/usr/bin/webcode-ai-studio" ]; then
-    echo "[INFO] webcode-ai-studio 已安装，跳过"
-    exit 0
+# AI Studio 自更新和 Software Manager 都使用固定的无参数入口。
+if [ "$#" -ne 0 ]; then
+    echo "[ERROR] 不支持的参数" >&2
+    exit 1
 fi
 
 # 非 launcher / 非 Docker 构建时显示确认对话框
@@ -75,6 +71,12 @@ install_main() {
         if [ -z "$VER" ]; then
             VER=$(echo "$METADATA" | sed -n 's/.*"latest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
         fi
+        if [ -z "$VER" ]; then
+            echo "[ERROR] 最新版本元数据缺少版本号" >&2
+            exit 1
+        fi
+    else
+        METADATA=$(curl -fsSL "${R2_BASE}/${PRODUCT_PATH}/latest.json")
     fi
     echo "[INFO] 安装 ai-cli-studio v${VER} (${ARCH})"
 
@@ -102,6 +104,7 @@ print(assets.get('${R2_ARCH_KEY}', assets.get('linux', {})).get('url', ''))" 2>/
 
     # 下载 zip 包（实际包含 deb 文件）
     TMP_DIR=$(mktemp -d)
+    trap 'if [ -n "${BACKUP_DIR:-}" ] && [ -d "$BACKUP_DIR" ] && [ "${APPIMAGE_COMMITTED:-0}" != "1" ]; then rm -rf /opt/ai-cli-studio; mv "$BACKUP_DIR" /opt/ai-cli-studio; fi; [ -z "${STAGE_DIR:-}" ] || rm -rf "$STAGE_DIR"; rm -rf "$TMP_DIR"' EXIT
     curl -fsSL "$DOWNLOAD_URL" -o "${TMP_DIR}/ai-cli-studio.zip"
 
     echo "70" > "$PROGRESS_FILE"
@@ -116,6 +119,10 @@ print(assets.get('${R2_ARCH_KEY}', assets.get('linux', {})).get('url', ''))" 2>/
     if [ -n "$DEB_FILE" ]; then
         echo "[INFO] 安装 deb 包: $(basename "$DEB_FILE")"
         sudo dpkg -i "$DEB_FILE" || sudo apt-get install -fy
+        if ! dpkg -s ai-cli-studio 2>/dev/null | grep -q "Status: install ok installed"; then
+            echo "[ERROR] deb 安装后软件包状态异常" >&2
+            exit 1
+        fi
     elif [ -n "$APPIMAGE_FILE" ]; then
         echo "[INFO] 安装 AppImage（提取模式，无需 FUSE）: $(basename "$APPIMAGE_FILE")"
 
@@ -154,34 +161,51 @@ print(assets.get('${R2_ARCH_KEY}', assets.get('linux', {})).get('url', ''))" 2>/
 
         echo "[INFO] 找到二进制: $BINARY"
 
-        # 将提取内容移动到 /opt/ai-cli-studio
+        # 在同一 /opt 文件系统准备完整新版本；旧目录保留到启动入口写入成功。
         INSTALL_DIR="/opt/ai-cli-studio"
-        rm -rf "$INSTALL_DIR"
-        mv "${EXTRACT_DIR}/squashfs-root" "$INSTALL_DIR"
+        STAGE_DIR=$(mktemp -d /opt/.ai-cli-studio.stage.XXXXXX)
+        BACKUP_DIR="${STAGE_DIR}.previous"
+        mv "${EXTRACT_DIR}/squashfs-root" "${STAGE_DIR}/app"
 
         # 确保所有用户可读可执行（mktemp 创建的目录默认 700，mv 保留权限）
-        chmod -R a+rX "$INSTALL_DIR"
+        chmod -R a+rX "${STAGE_DIR}/app"
         # a+rX 只在已有 x 位时才补 x；AppRun / AppRun.wrapped 是真正的入口，显式补
-        for entry in "$INSTALL_DIR/AppRun" "$INSTALL_DIR/AppRun.wrapped"; do
+        for entry in "${STAGE_DIR}/app/AppRun" "${STAGE_DIR}/app/AppRun.wrapped"; do
             [ -f "$entry" ] && chmod 0755 "$entry"
         done
 
         # 确定安装后的实际二进制路径
         BINARY_NAME=$(basename "$BINARY")
-        ACTUAL_BINARY=$(find "$INSTALL_DIR" -maxdepth 4 -type f -name "$BINARY_NAME" ! -name "*.so" | head -n1)
+        ACTUAL_BINARY=$(find "${STAGE_DIR}/app" -maxdepth 4 -type f -name "$BINARY_NAME" ! -name "*.so" | head -n1)
         chmod +x "$ACTUAL_BINARY"
+
+        if [ ! -x "${STAGE_DIR}/app/AppRun" ]; then
+            echo "[ERROR] 新版本 AppRun 不存在或不可执行" >&2
+            exit 1
+        fi
+        printf '%s\n' "$VER" > "${STAGE_DIR}/app/.webclaw-version"
+
+        if [ -d "$INSTALL_DIR" ]; then
+            mv "$INSTALL_DIR" "$BACKUP_DIR"
+        fi
+        if ! mv "${STAGE_DIR}/app" "$INSTALL_DIR"; then
+            [ ! -d "$BACKUP_DIR" ] || mv "$BACKUP_DIR" "$INSTALL_DIR"
+            exit 1
+        fi
 
         # 创建启动脚本：通过 AppRun 启动（不能直接运行二进制）
         # AppRun.wrapped 设置完整 LD_LIBRARY_PATH（含 $APPDIR/lib/...），
         # WebKit2GTK 子进程通过相对路径 ././/lib/.../WebKitNetworkProcess 查找自身，
         # 必须借助 AppRun.wrapped 设置的路径才能找到。
-        cat > /usr/bin/webcode-ai-studio <<WRAPPER_EOF
+        WRAPPER_TMP=$(mktemp /usr/bin/.webcode-ai-studio.XXXXXX)
+        cat > "$WRAPPER_TMP" <<WRAPPER_EOF
 #!/bin/bash
 export APPDIR="${INSTALL_DIR}"
 cd "${INSTALL_DIR}"
 exec "${INSTALL_DIR}/AppRun" "\$@"
 WRAPPER_EOF
-        chmod +x /usr/bin/webcode-ai-studio
+        chmod +x "$WRAPPER_TMP"
+        mv "$WRAPPER_TMP" /usr/bin/webcode-ai-studio
 
         # 安装后校验：AppRun 不可执行时应立刻失败，而不是留到用户点图标才报错
         if [ ! -x "${INSTALL_DIR}/AppRun" ]; then
@@ -190,6 +214,8 @@ WRAPPER_EOF
             rm -rf "$TMP_DIR"
             exit 1
         fi
+        APPIMAGE_COMMITTED=1
+        rm -rf "$BACKUP_DIR" "$STAGE_DIR"
     else
         echo "[ERROR] 无法找到 deb 或 AppImage 文件"
         rm -rf "$TMP_DIR"
@@ -198,6 +224,7 @@ WRAPPER_EOF
 
     # 清理临时文件
     rm -rf "$TMP_DIR"
+    trap - EXIT
 
     # 复制图标到 on-demand-icons（供 update-desktop-icons 使用）
     mkdir -p /opt/on-demand-icons

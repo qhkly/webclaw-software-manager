@@ -762,12 +762,10 @@
       "platforms": {
         "container": {
           "detect": {
-            "type": "binary",
-            "path": "/usr/bin/webcode-ai-studio"
+            "type": "ai-studio-installed"
           },
           "latest": {
-            "type": "static",
-            "version": "latest"
+            "type": "ai-studio-latest"
           },
           "install": {
             "type": "custom-script",

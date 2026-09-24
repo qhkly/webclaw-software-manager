@@ -531,12 +531,23 @@ function App() {
       for (const target of targets) {
         addLog(`开始${actionLabel} ${target.name}...`, 'up');
         await tauriInvoke(command, { id: target.id, platform: platform.key });
-        addLog(`${target.name} ${actionLabel}完成`, 'ok');
+        setActionState(prev => ({ ...prev, phase: 'running', stage: 'VERIFYING' }));
+        const checked = await tauriInvoke('check_software', { id: target.id, platform: platform.key });
         setItems(prev => prev.map(i =>
           i.id === target.id
-            ? { ...i, state: 'up_to_date', installed_version: i.latest_version ?? i.installed_version }
+            ? { ...i, ...checked, icon: i.icon, iconUrl: i.iconUrl, _order: i._order }
             : i
         ));
+        if (checked.state === 'not_installed' ||
+            (target.id === 'webcode-ai-studio' && checked.state !== 'up_to_date')) {
+          throw new Error(`${target.name} ${actionLabel}未生效：检测到 ${checked.installed_version || '未安装'}，最新版本 ${checked.latest_version || '未知'}`);
+        }
+        addLog(`${target.name} ${actionLabel}完成，已检测版本 ${checked.installed_version || '已安装'}`, 'ok');
+        if (target.id === 'webcode-ai-studio' && action === 'upgrade') {
+          const notice = '如 AI Studio 正在运行，请先在应用内退出，再从 AI 工具菜单重新打开以使用新版本。';
+          addLog(notice, 'sys');
+          setActionState(prev => ({ ...prev, notice }));
+        }
       }
       setSelected(new Set());
       setActionState(prev => ({ ...prev, phase: 'done', stage: 'DONE', percent: 100 }));

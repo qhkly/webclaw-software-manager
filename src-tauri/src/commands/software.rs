@@ -87,6 +87,8 @@ pub enum ActionSpec {
     GithubReleaseLatest {
         repo: String,
     },
+    AiStudioInstalled,
+    AiStudioLatest,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -256,9 +258,13 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
         let sem = std::sync::Arc::clone(&sem);
         tasks.spawn(async move {
             let _permit = sem.acquire_owned().await.unwrap();
+            let is_ai_studio = entry.id == "webcode-ai-studio";
             let mut item = item_from_entry(entry, platform_key);
-            let (installed, latest) =
-                tokio::join!(detect_one(&spec.detect, &item.platform), latest_one(&spec.latest));
+            let (installed, latest) = if is_ai_studio {
+                tokio::join!(detect_ai_studio(), fetch_ai_studio_latest())
+            } else {
+                tokio::join!(detect_one(&spec.detect, &item.platform), latest_one(&spec.latest))
+            };
             match installed {
                 Ok(version) => item.installed_version = version,
                 Err(e) => item.error = Some(e.to_string()),
@@ -283,6 +289,35 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
     }
     items.sort_by(|a, b| a.group.cmp(&b.group).then(a.name.cmp(&b.name)));
     Ok(items)
+}
+
+#[tauri::command]
+pub async fn check_software(
+    app: AppHandle,
+    platform: String,
+    id: String,
+) -> Result<CatalogItem, String> {
+    let (manifest, _) = load_effective_manifest(&app)
+        .await
+        .map_err(|e| e.to_string())?;
+    let (entry, spec) = platform_entries(manifest, &platform)
+        .into_iter()
+        .find(|(entry, _)| entry.id == id)
+        .ok_or_else(|| format!("未知或不支持当前平台的软件: {}", id))?;
+    let is_ai_studio = entry.id == "webcode-ai-studio";
+    let mut item = item_from_entry(entry, platform);
+    let (installed, latest) = if is_ai_studio {
+        tokio::join!(detect_ai_studio(), fetch_ai_studio_latest())
+    } else {
+        tokio::join!(detect_one(&spec.detect), latest_one(&spec.latest))
+    };
+    item.installed_version = installed.map_err(|e| e.to_string())?;
+    item.latest_version = latest.map_err(|e| e.to_string())?;
+    item.state = compute_state(
+        item.installed_version.as_deref(),
+        item.latest_version.as_deref(),
+    );
+    Ok(item)
 }
 
 async fn collect_items(
@@ -324,6 +359,36 @@ async fn latest_one(spec: &ActionSpec) -> Result<Option<String>> {
         ActionSpec::GithubReleaseLatest { repo } => fetch_github_latest(repo).await,
         _ => Ok(None),
     }
+}
+
+async fn detect_ai_studio() -> Result<Option<String>> {
+    if let Some(version) = detect_dpkg("ai-cli-studio").await? {
+        return Ok(Some(version));
+    }
+    if !Path::new("/usr/bin/webcode-ai-studio").exists() {
+        return Ok(None);
+    }
+    let marker = Path::new("/opt/ai-cli-studio/.webclaw-version");
+    match tokio::fs::read_to_string(marker).await {
+        Ok(version) if !version.trim().is_empty() => Ok(Some(version.trim().to_string())),
+        _ => Ok(Some("installed".into())),
+    }
+}
+
+async fn fetch_ai_studio_latest() -> Result<Option<String>> {
+    let json: serde_json::Value = HTTP
+        .get("https://launcher.qhkly.com/launcher/webcode-ai-studio/latest.json")
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+    Ok(json
+        .get("version")
+        .or_else(|| json.get("latest"))
+        .and_then(|value| value.as_str())
+        .filter(|version| !version.is_empty())
+        .map(String::from))
 }
 
 async fn detect_dpkg(pkg: &str) -> Result<Option<String>> {
@@ -501,6 +566,23 @@ async fn execute_software_action(
         .find(|(entry, _)| entry.id == id)
         .ok_or_else(|| format!("未知或不支持当前平台的软件: {}", id))?;
 
+    // Install is a manager-level idempotent operation. The shared root script
+    // always ensures latest because AI Studio's own updater calls it directly.
+    if !upgrade && id == "webcode-ai-studio" {
+        if detect_ai_studio().await.map_err(|e| e.to_string())?.is_some() {
+            let _ = app.emit(
+                "software-progress",
+                SoftwareProgress {
+                    id,
+                    stage: "done".into(),
+                    percent: Some(100.0),
+                    line: Some("已安装，跳过安装".into()),
+                },
+            );
+            return Ok(());
+        }
+    }
+
     let action = if upgrade {
         platform_spec.upgrade.as_ref().unwrap_or(&platform_spec.install)
     } else {
@@ -657,6 +739,7 @@ fn compute_state(installed: Option<&str>, latest: Option<&str>) -> String {
         (None, _) => "not_installed".into(),
         (Some(_), Some("latest")) => "up_to_date".into(),
         (Some(cur), Some(latest)) if cur == latest => "up_to_date".into(),
+        (Some("installed"), Some(_)) => "upgradable".into(),
         (Some(cur), Some(latest)) if version_lt(cur, latest) => "upgradable".into(),
         (Some(_), Some(_)) => "up_to_date".into(),
         (Some(_), None) => "unknown".into(),
