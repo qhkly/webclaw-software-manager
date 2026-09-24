@@ -204,7 +204,7 @@ export APPDIR="${INSTALL_DIR}"
 cd "${INSTALL_DIR}"
 exec "${INSTALL_DIR}/AppRun" "\$@"
 WRAPPER_EOF
-        chmod +x "$WRAPPER_TMP"
+        chmod 0755 "$WRAPPER_TMP"
         mv "$WRAPPER_TMP" /usr/bin/webcode-ai-studio
 
         # 安装后校验：AppRun 不可执行时应立刻失败，而不是留到用户点图标才报错
