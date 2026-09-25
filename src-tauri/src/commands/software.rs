@@ -309,7 +309,7 @@ pub async fn check_software(
     let (installed, latest) = if is_ai_studio {
         tokio::join!(detect_ai_studio(), fetch_ai_studio_latest())
     } else {
-        tokio::join!(detect_one(&spec.detect), latest_one(&spec.latest))
+        tokio::join!(detect_one(&spec.detect, &item.platform), latest_one(&spec.latest))
     };
     item.installed_version = installed.map_err(|e| e.to_string())?;
     item.latest_version = latest.map_err(|e| e.to_string())?;
