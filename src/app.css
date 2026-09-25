@@ -531,3 +531,14 @@ body { font-family: var(--font); background: #0d0d10; -webkit-font-smoothing: an
 }
 .dots-loading::after { content: ""; animation: dots 1.2s steps(4, end) infinite; }
 @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+
+/* broker v2：镜像运行时 / 软件目录状态 */
+.runtime-banner {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin: 0 0 16px; padding: 10px 14px; border-radius: 10px;
+  color: var(--idle-fg); background: var(--idle-bg); font-size: 12.5px; line-height: 1.5;
+}
+.runtime-banner.warn { color: var(--warn-fg); background: var(--warn-bg); }
+.runtime-banner .rb-title { font-weight: 650; font-size: 13px; }
+.sc-warn { color: var(--warn-fg); }
+.sc-hint { margin-top: 2px; font-size: 11px; color: var(--warn-fg); }

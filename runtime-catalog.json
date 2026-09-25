@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-25T07:03:40Z",
+  "apps": {
+    "cc-switch": {
+      "version": "3.20.4",
+      "released_at": "2026-09-22T14:42:23Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://github.com/farion1231/cc-switch/releases/download/v3.20.4/CC-Switch-v3.20.4-Linux-x86_64.deb",
+          "sha256": "434557d3ae08b792c8138c5508f104e799f36d2ced563fb94b3a86ffbb250801"
+        },
+        "arm64": {
+          "url": "https://github.com/farion1231/cc-switch/releases/download/v3.20.4/CC-Switch-v3.20.4-Linux-arm64.deb",
+          "sha256": "515cfcf7dc135337510239be61096499be12a9ed3a67cd93f6b449f499cfc4a3"
+        }
+      }
+    },
+    "cursor": {
+      "version": "3.22.7",
+      "artifacts": {
+        "amd64": {
+          "url": "https://downloads.cursor.com/production/37076c6c3f9e253c0fa2305197e45befd13a2268/linux/x64/Cursor-3.22.7-x86_64.AppImage",
+          "sha256": "79706591002dbbdfdd59eab471fe638241dcf03d3273b7e82020f0641bebc45d"
+        },
+        "arm64": {
+          "url": "https://downloads.cursor.com/production/37076c6c3f9e253c0fa2305197e45befd13a2268/linux/arm64/Cursor-3.22.7-aarch64.AppImage",
+          "sha256": "431a7995c352da2f7364f36055d9ae46dd317a1413b40f4ca07fa299d9a9e9fd"
+        }
+      }
+    },
+    "dbeaver": {
+      "version": "26.2.1",
+      "released_at": "2026-09-21T04:23:05Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://github.com/dbeaver/dbeaver/releases/download/26.2.1/dbeaver-ce-26.2.1-linux-x86_64.deb",
+          "sha256": "ed4fd3bfec2e79919d105859a6e005d03e670a46dfb8987d2cb0d4d14ab1d627"
+        },
+        "arm64": {
+          "url": "https://github.com/dbeaver/dbeaver/releases/download/26.2.1/dbeaver-ce-26.2.1-linux-aarch64.deb",
+          "sha256": "f021e43b8af79c8a1c88e16cb5566ad8e5283a997d4b69a777d1b4645e8dd94f"
+        }
+      }
+    },
+    "dockyard": {
+      "version": "0.8.1",
+      "released_at": "2026-05-22T10:18:14Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://github.com/land007/dockyard/releases/download/v0.8.1/dockyard_0.8.1_amd64.deb",
+          "sha256": "2858ea3fe611b3a54d1c7587b18ae4aebb4767f6ee599061046c9be9fef848cf"
+        },
+        "arm64": {
+          "url": "https://github.com/land007/dockyard/releases/download/v0.8.1/dockyard_0.8.1_arm64.deb",
+          "sha256": "035bec40ab874a126329ef50a3d70fca607d32e3d4d3781221386e2b1f357258"
+        }
+      }
+    },
+    "ghostty": {
+      "version": "1.3.1",
+      "released_at": "2026-03-13T20:50:40Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v1.3.1/Ghostty-1.3.1-x86_64.AppImage",
+          "sha256": "fde48d2b716afd1978766879bbf1aae30dd305e8ad86a1037a2614a14d82dc28"
+        },
+        "arm64": {
+          "url": "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v1.3.1/Ghostty-1.3.1-aarch64.AppImage",
+          "sha256": "55b7d1e2073b80954e23167a70f9e5994189d81e954d36dad4d2dc2d2fe6c121"
+        }
+      }
+    },
+    "intellij": {
+      "version": "2025.3",
+      "released_at": "2025-12-08T00:00:00Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://download.jetbrains.com/idea/idea-2025.3.tar.gz",
+          "sha256": "13f4174ba16c1cef04871cb261433536d002586c269a809392c20ee3f94959f5"
+        },
+        "arm64": {
+          "url": "https://download.jetbrains.com/idea/idea-2025.3-aarch64.tar.gz",
+          "sha256": "07c83a9d219fa8945b6accb7f3284658553e5c812053a97621b8f84bc031e57c"
+        }
+      }
+    },
+    "opentypeless": {
+      "version": "0.1.26",
+      "released_at": "2026-04-27T01:43:48Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://github.com/land007/opentypeless/releases/download/v0.1.26/OpenTypeless_0.1.26_amd64.deb",
+          "sha256": "c4b6129c3addd13ab7a0bdcf4b0b09c3af4f474efb68b021f9cd27e48044d28d"
+        },
+        "arm64": {
+          "url": "https://github.com/land007/opentypeless/releases/download/v0.1.26/OpenTypeless_0.1.26_arm64.deb",
+          "sha256": "10360e48b345e2b761b365e19bc722686430f9300c872d83a1216681e2fd2cd1"
+        }
+      }
+    },
+    "pycharm": {
+      "version": "2026.2.3",
+      "released_at": "2026-09-18T00:00:00Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://download.jetbrains.com/python/pycharm-2026.2.3.tar.gz",
+          "sha256": "e8e4fbe4dab44390d09f681e059a316e692cabd24b2e11ce98ff76c8120fa313"
+        },
+        "arm64": {
+          "url": "https://download.jetbrains.com/python/pycharm-2026.2.3-aarch64.tar.gz",
+          "sha256": "c1ac6b7440f4d8946241d602220e9db9afac75f41831ca21dc5168cdf3689d0e"
+        }
+      }
+    },
+    "webclaw-launcher": {
+      "version": "0.2.92",
+      "released_at": "2026-09-24T09:48:50.760Z",
+      "artifacts": {
+        "amd64": {
+          "url": "https://launcher.qhkly.com/launcher/versions/v0.2.92/webclaw-launcher-linux-x64.zip",
+          "sha256": "6917768ef78a0fea3b733dd6241812db3414f344aacfd0a4e5c8fe9586781a1c"
+        },
+        "arm64": {
+          "url": "https://launcher.qhkly.com/launcher/versions/v0.2.92/webclaw-launcher-linux-arm64.zip",
+          "sha256": "2fc9ba5de784dbf6dcfdd92a28bc3276434a3b6dd060bf6c6cd401a1f5c0b58e"
+        }
+      }
+    }
+  }
+}

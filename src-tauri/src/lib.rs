@@ -27,6 +27,8 @@ pub fn run() {
             check_software,
             install_software,
             upgrade_software,
+            uninstall_software,
+            broker_runtime_status,
             supervisor_status,
             supervisor_restart,
             supervisor_tail_log,

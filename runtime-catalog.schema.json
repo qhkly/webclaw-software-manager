@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/qhkly/webclaw-software-manager/main/runtime-catalog.schema.json",
+  "title": "WebClaw runtime catalog (schema v1)",
+  "description": "只含高频事实数据（版本、发布时间、各架构下载地址与 SHA256）。安装方式、脚本、包名、目标路径等 root policy 只能由镜像内 root 所有的 /opt/on-demand-apps/<id>.json 定义，出现在这里即非法。tools/lib/runtime-catalog.mjs 的 validateCatalog 与本 schema 等价并额外校验真实日期与 URL 解析。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "apps"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "generated_at": { "$ref": "#/$defs/rfc3339" },
+    "apps": {
+      "type": "object",
+      "propertyNames": { "pattern": "^(?!.*\\.\\.)[a-z0-9][a-z0-9._-]{0,63}$" },
+      "additionalProperties": { "$ref": "#/$defs/app" }
+    }
+  },
+  "$defs": {
+    "rfc3339": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "artifacts"],
+      "properties": {
+        "version": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+~-]{0,63}$" },
+        "released_at": { "$ref": "#/$defs/rfc3339" },
+        "artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "amd64": { "$ref": "#/$defs/artifact" },
+            "arm64": { "$ref": "#/$defs/artifact" }
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "sha256"],
+      "properties": {
+        "url": { "type": "string", "maxLength": 2048, "pattern": "^https://[^\\s\"'`\\\\@]+$" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

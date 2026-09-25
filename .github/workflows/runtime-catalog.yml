@@ -1,0 +1,139 @@
+name: Runtime Catalog
+
+# 每天查询一次上游版本，只在 runtime-catalog.json 真的变化时开 PR（分支 automation/runtime-catalog）。
+# 这里只更新数据文件：不构建、不触发 Docker 镜像。容器由 webclaw-catalog-update 从 main 的固定
+# Raw URL 拉取合并后的 catalog。GITHUB_TOKEN 创建的 PR 也不会再触发其它 workflow。
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'runtime-catalog.json'
+      - 'runtime-catalog.json.sig'
+      - 'runtime-catalog.schema.json'
+      - 'tools/**'
+      - '.github/workflows/runtime-catalog.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-catalog-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate catalog & tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Unit tests
+        run: node --test tools/test/runtime-catalog.test.mjs
+      - name: Validate runtime-catalog.json (offline)
+        run: node tools/update-runtime-catalog.mjs --validate
+
+  update:
+    name: Update catalog
+    needs: validate
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run updater
+        id: update
+        env:
+          # 仅用于 api.github.com 元数据查询（避免限流），不会发给 artifact 下载地址。
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          node tools/update-runtime-catalog.mjs
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          case "$code" in
+            0) ;;
+            2) echo "::warning::部分 app 更新失败，已保留其上一版（last-known-good），详见上面的日志" ;;
+            *) echo "::error::catalog updater 致命错误（退出码 $code）"; exit "$code" ;;
+          esac
+
+      - name: Re-validate
+        run: node tools/update-runtime-catalog.mjs --validate
+
+      # 预留：detached Ed25519 签名（与 Docker 侧 `openssl pkeyutl -verify -rawin` 对应）。
+      # 未配置 secret 时跳过；配置方法见 docs/runtime-catalog.md。
+      - name: Sign catalog (optional)
+        if: steps.update.outputs.changed == 'true'
+        env:
+          SIGNING_KEY: ${{ secrets.RUNTIME_CATALOG_SIGNING_KEY }}
+        run: |
+          if [ -z "$SIGNING_KEY" ]; then
+            if [ -f runtime-catalog.json.sig ]; then
+              echo "::error::仓库里有 runtime-catalog.json.sig，但没有配置 RUNTIME_CATALOG_SIGNING_KEY；继续会让签名与 catalog 不匹配"
+              exit 1
+            fi
+            echo "未配置签名密钥，跳过签名"
+            exit 0
+          fi
+          umask 077
+          key="$RUNNER_TEMP/catalog-signing.pem"
+          printf '%s\n' "$SIGNING_KEY" > "$key"
+          openssl pkeyutl -sign -inkey "$key" -rawin -in runtime-catalog.json -out runtime-catalog.json.sig
+          rm -f "$key"
+
+      - name: Upload candidate catalog
+        if: steps.update.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-catalog
+          path: |
+            runtime-catalog.json
+            runtime-catalog.json.sig
+          if-no-files-found: ignore
+
+      - name: Open / update PR
+        if: steps.update.outputs.changed == 'true'
+        continue-on-error: true
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: automation/runtime-catalog
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -C "$BRANCH"
+          git add runtime-catalog.json
+          [ -f runtime-catalog.json.sig ] && git add runtime-catalog.json.sig
+          git commit -m "chore: update runtime catalog"
+          git push --force origin "$BRANCH"
+          body="自动生成：runtime-catalog 更新。失败并保留旧条目的 app：${{ steps.update.outputs.failed || '无' }}。合并后容器按固定 Raw URL 拉取，不需要重建镜像。"
+          if gh pr view "$BRANCH" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$BRANCH" --body "$body"
+          else
+            gh pr create --base "${{ github.event.repository.default_branch }}" --head "$BRANCH" \
+              --title "chore: update runtime catalog" --body "$body"
+          fi
+
+      - name: Next steps if PR could not be created
+        if: steps.update.outputs.changed == 'true' && steps.pr.outcome == 'failure'
+        run: |
+          {
+            echo "### runtime-catalog 有更新，但自动 PR 失败"
+            echo ""
+            echo "候选文件已作为 workflow artifact \`runtime-catalog\` 上传。可选处理："
+            echo "1. 仓库 Settings → Actions → General → Workflow permissions，勾选"
+            echo "   *Allow GitHub Actions to create and approve pull requests*，然后重跑本 workflow；"
+            echo "2. 或下载 artifact，手动替换 runtime-catalog.json 后提 PR。"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning::自动 PR 失败，见 job summary"

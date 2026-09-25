@@ -40,7 +40,25 @@ function mapState(state) {
   if (state === 'not_installed') return 'installable';
   if (state === 'up_to_date') return 'uptodate';
   if (state === 'upgradable') return 'upgradable';
+  if (state === 'runtime_outdated') return 'outdated';
+  if (state === 'unsupported') return 'unsupported';
   return 'checking';
+}
+
+const RUNTIME_OUTDATED_TEXT = 'WebClaw 镜像运行时过旧，需要一次性升级镜像';
+
+// broker 报告的 runtime-catalog 状态；fresh 不需要提示。
+const CATALOG_STATE_TEXT = {
+  stale: '软件目录较旧',
+  offline: '软件目录离线（使用缓存）',
+  missing: '软件目录尚未下载',
+  untrusted: '软件目录不可信，已忽略',
+  not_in_catalog: '未收录于软件目录',
+  unknown: '软件目录状态未知',
+};
+
+function catalogHint(item) {
+  return CATALOG_STATE_TEXT[item.catalog_state] || null;
 }
 
 function nowTime() {
@@ -83,6 +101,12 @@ function StoreButton({ item, onInstall, onUpgrade, onRecheck }) {
   }
   if (item.state === 'up_to_date') {
     return <button className="pill-btn open" disabled>最新</button>;
+  }
+  if (item.state === 'runtime_outdated') {
+    return <button className="pill-btn disabled" disabled title={item.error || RUNTIME_OUTDATED_TEXT}>需升级镜像</button>;
+  }
+  if (item.state === 'unsupported') {
+    return <button className="pill-btn disabled" disabled title={item.error || ''}>不支持</button>;
   }
   return <button className="pill-btn disabled" onClick={() => onRecheck(item.id)}>检测</button>;
 }
@@ -137,9 +161,17 @@ function EntitlementBadge({ item, entitlement }) {
 function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, onOpenExternal, entitlementOf }) {
   const entitlement = entitlementOf(item);
   const state = mapState(item.state);
+  const hint = catalogHint(item);
   let meta;
-  if (state === 'checking') {
-    meta = <span className="dots-loading">{item.error ? '检测失败' : '检测中'}</span>;
+  if (state === 'outdated') {
+    meta = <span className="sc-warn" title={item.error || ''}>镜像运行时过旧</span>;
+  } else if (state === 'unsupported') {
+    meta = <span className="sc-warn" title={item.error || ''}>{item.error || '当前环境不支持'}</span>;
+  } else if (state === 'checking' && item.installed_version) {
+    // 已安装但拿不到最新版本（目录离线/未收录等）：不能显示成「未安装」
+    meta = <><span className="ver">{item.installed_version}</span><span className="dot-sep"/><span className="sc-warn" title={item.error || ''}>{hint || '无法获取最新版本'}</span></>;
+  } else if (state === 'checking') {
+    meta = <span className="dots-loading" title={item.error || ''}>{item.error ? '检测失败' : '检测中'}</span>;
   } else if (state === 'upgradable') {
     meta = (
       <>
@@ -166,6 +198,7 @@ function StoreCard({ item, selected, onSelect, onInstall, onUpgrade, onRecheck, 
         </div>
         <div className="sc-desc">{item.desc || item.group || item.category}</div>
         <div className="sc-meta">{meta}</div>
+        {hint && state !== 'checking' && state !== 'outdated' && item.catalog_state !== 'not_in_catalog' && <div className="sc-hint">{hint}</div>}
         <ProductLinks item={item} onOpenExternal={onOpenExternal} entitlement={entitlement} compact/>
       </div>
       <div className="sc-action">
@@ -183,6 +216,8 @@ function Hero({ item, onInstall, onUpgrade, onRecheck, onOpenExternal, entitleme
     if (item.state === 'not_installed') return <button className="hero-btn" onClick={() => onInstall(item)}><MiniIcon name="download" size={15}/> 安装</button>;
     if (item.state === 'upgradable') return <button className="hero-btn" onClick={() => onUpgrade(item)}><MiniIcon name="download" size={15}/> 更新到 {item.latest_version || '最新版'}</button>;
     if (item.state === 'up_to_date') return <button className="hero-btn" disabled><MiniIcon name="check" size={15}/> 已是最新</button>;
+    if (item.state === 'runtime_outdated') return <button className="hero-btn" disabled title={item.error || ''}><MiniIcon name="alert" size={15}/> 需升级镜像</button>;
+    if (item.state === 'unsupported') return <button className="hero-btn" disabled title={item.error || ''}><MiniIcon name="alert" size={15}/> 当前环境不支持</button>;
     return <button className="hero-btn" onClick={() => onRecheck(item.id)}><MiniIcon name="refresh" size={15}/> 重新检测</button>;
   })();
   return (
@@ -195,6 +230,34 @@ function Hero({ item, onInstall, onUpgrade, onRecheck, onOpenExternal, entitleme
         {action}
         <ProductLinks item={item} onOpenExternal={onOpenExternal} entitlement={entitlement}/>
       </div>
+    </div>
+  );
+}
+
+/** 容器 broker 运行时不可用时的一次性提示；catalog 异常时给出简短说明。 */
+function RuntimeBanner({ report }) {
+  if (!report) return null;
+  const { runtime, catalog_state: catalogState, catalog_error: catalogError } = report;
+  if (runtime && runtime.state !== 'ok') {
+    return (
+      <div className="runtime-banner warn">
+        <MiniIcon name="alert" size={15}/>
+        <div>
+          <div className="rb-title">{RUNTIME_OUTDATED_TEXT}</div>
+          <div className="rb-sub">
+            系统/桌面软件的安装与升级需要新版镜像的受控入口（webclaw-app-admin v2）。
+            AI 命令行工具（Claude Code、Codex 等）不受影响。{runtime.message ? `详情：${runtime.message}` : ''}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  const text = catalogError ? `软件目录状态读取失败：${catalogError}` : CATALOG_STATE_TEXT[catalogState];
+  if (!text) return null;
+  return (
+    <div className="runtime-banner">
+      <MiniIcon name="alert" size={15}/>
+      <div><div className="rb-sub">{text}，部分软件可能无法显示最新版本。</div></div>
     </div>
   );
 }
@@ -265,6 +328,7 @@ function App() {
   const [auth, setAuth] = React.useState(null);
   const [authBusy, setAuthBusy] = React.useState(false);
   const [entitlements, setEntitlements] = React.useState(null);
+  const [runtimeReport, setRuntimeReport] = React.useState(null);
 
   const addLog = React.useCallback((msg, tone = 'sys') => {
     setLog(L => [...L, { ts: nowTime(), msg, tone }].slice(-80));
@@ -294,9 +358,10 @@ function App() {
       });
       const ts = nowTime();
       setLastScan(ts);
-      const instCount = checked.filter(i => i.state !== 'not_installed').length;
+      const instCount = checked.filter(i => i.installed_version).length;
+      const outdatedCount = checked.filter(i => i.state === 'runtime_outdated').length;
       const upgCount = checked.filter(i => i.state === 'upgradable').length;
-      addLog(`扫描完成：共 ${catalog.length} 项，已安装 ${instCount} 项，可升级 ${upgCount} 项`, 'ok');
+      addLog(`扫描完成：共 ${catalog.length} 项，已安装 ${instCount} 项，可升级 ${upgCount} 项${outdatedCount ? `，${outdatedCount} 项需升级镜像` : ''}`, 'ok');
     } catch (e) {
       addLog(`扫描失败：${stringifyError(e)}`, 'err');
     } finally {
@@ -315,13 +380,30 @@ function App() {
         const info = await tauriInvoke('detect_platform');
         setPlatform(info);
         addLog(`平台：${info.label}（${info.os} / ${info.arch}）`, 'sys');
-        const src = await tauriInvoke('refresh_manifest');
-        setManifestSource(src);
-        addLog(`软件清单来源：${{ remote: '远端', cache: '缓存', bundled: '内置' }[src] || src}`, 'sys');
+        // 远端清单拉取/解析失败时后端仍会用缓存或内置清单，不能因此中断扫描。
+        try {
+          const src = await tauriInvoke('refresh_manifest');
+          setManifestSource(src);
+          addLog(`软件清单来源：${{ remote: '远端', cache: '缓存', bundled: '内置' }[src] || src}`, 'sys');
+        } catch (e) {
+          addLog(`远端软件清单不可用，使用本地清单：${stringifyError(e)}`, 'err');
+        }
         if (info.in_container) {
+          tauriInvoke('broker_runtime_status', { platform: info.key }).then(report => {
+            setRuntimeReport(report);
+            if (report?.runtime?.state && report.runtime.state !== 'ok') {
+              addLog(`${RUNTIME_OUTDATED_TEXT}${report.runtime.message ? `：${report.runtime.message}` : ''}`, 'err');
+            } else if (report?.catalog_state && report.catalog_state !== 'fresh') {
+              addLog(`软件目录状态：${CATALOG_STATE_TEXT[report.catalog_state] || report.catalog_state}`, 'sys');
+            }
+          }).catch(e => addLog(`读取镜像运行时状态失败：${stringifyError(e)}`, 'err'));
           setScriptsState('updating');
           tauriInvoke('refresh_scripts').then(r => {
-            if (r === 'updated') {
+            if (r === 'skipped:broker-v2') {
+              // v2 镜像：安装策略以镜像内受信版本为准，不再从远程热更新 root 安装脚本
+              setScriptsState(null);
+              addLog('broker v2 使用镜像内受信安装策略；仅刷新 runtime catalog', 'sys');
+            } else if (r === 'updated') {
               setScriptsState('updated');
               addLog('安装脚本已从远端更新', 'ok');
               setTimeout(() => setScriptsState(null), 3000);
@@ -391,7 +473,7 @@ function App() {
 
   const q = query.trim().toLowerCase();
   const sortedItems = React.useMemo(() => {
-    const stateRank = { not_installed: 0, upgradable: 1, unknown: 2, error: 2, up_to_date: 3 };
+    const stateRank = { not_installed: 0, upgradable: 1, unknown: 2, error: 2, up_to_date: 3, unsupported: 4, runtime_outdated: 4 };
     return items.slice().sort((a, b) => {
       if (scanning) return (a._order ?? 9999) - (b._order ?? 9999) || a.name.localeCompare(b.name);
       return ((stateRank[a.state] ?? 4) - (stateRank[b.state] ?? 4)) || (a._order ?? 9999) - (b._order ?? 9999) || a.name.localeCompare(b.name);
@@ -406,7 +488,8 @@ function App() {
   }, [q, sortedItems]);
 
   const upgradable = sortedItems.filter(i => i.state === 'upgradable');
-  const installed = sortedItems.filter(i => i.state !== 'not_installed');
+  const installed = sortedItems.filter(i =>
+    i.state !== 'not_installed' && !((i.state === 'runtime_outdated' || i.state === 'unsupported') && !i.installed_version));
   const selectedUpgradable = [...selected].filter(id => items.find(i => i.id === id && i.state === 'upgradable')).length;
   const featured = upgradable[0] || sortedItems.find(i => i.state === 'not_installed') || sortedItems[0];
 
@@ -681,7 +764,7 @@ function App() {
                 </button>
               </div>
               {scanning && <div className="scan-progress"><div className="bar"/></div>}
-              <div className="main-scroll">{content}</div>
+              <div className="main-scroll"><RuntimeBanner report={runtimeReport}/>{content}</div>
             </main>
           </div>
 

@@ -10,6 +10,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
+use super::broker::{self, BrokerOp};
 use super::manifest::{load_effective_manifest, platform_entries};
 
 static HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
@@ -42,12 +43,87 @@ pub struct SoftwareEntry {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(try_from = "RawPlatformSpec")]
 pub struct PlatformSoftwareSpec {
     pub detect: ActionSpec,
     pub latest: ActionSpec,
     pub install: ActionSpec,
     #[serde(default)]
     pub upgrade: Option<ActionSpec>,
+}
+
+/// broker 条目只需要写 `install`：检测、最新版本、升级都由同一个 broker app 负责。
+#[derive(Deserialize)]
+struct RawPlatformSpec {
+    #[serde(default)]
+    detect: Option<ActionSpec>,
+    #[serde(default)]
+    latest: Option<ActionSpec>,
+    install: ActionSpec,
+    #[serde(default)]
+    upgrade: Option<ActionSpec>,
+}
+
+impl TryFrom<RawPlatformSpec> for PlatformSoftwareSpec {
+    type Error = String;
+
+    fn try_from(raw: RawPlatformSpec) -> Result<Self, Self::Error> {
+        if let ActionSpec::Broker { app_id, .. } = &raw.install {
+            broker::validate_app_id(app_id)?;
+            return Ok(PlatformSoftwareSpec {
+                detect: raw.install.clone(),
+                latest: raw.install.clone(),
+                upgrade: Some(raw.install.clone()),
+                install: raw.install,
+            });
+        }
+        Ok(PlatformSoftwareSpec {
+            detect: raw.detect.ok_or("missing field `detect`")?,
+            latest: raw.latest.ok_or("missing field `latest`")?,
+            install: raw.install,
+            upgrade: raw.upgrade,
+        })
+    }
+}
+
+impl PlatformSoftwareSpec {
+    pub fn broker(app_id: &str, min_api_version: u32) -> Self {
+        let action = ActionSpec::Broker {
+            app_id: app_id.into(),
+            min_api_version,
+        };
+        PlatformSoftwareSpec {
+            detect: action.clone(),
+            latest: action.clone(),
+            install: action.clone(),
+            upgrade: Some(action),
+        }
+    }
+
+    /// (app_id, min_api_version)，仅 broker 条目
+    pub fn broker_app(&self) -> Option<(&str, u32)> {
+        match &self.install {
+            ActionSpec::Broker {
+                app_id,
+                min_api_version,
+            } => Some((app_id.as_str(), *min_api_version)),
+            _ => None,
+        }
+    }
+
+    /// 给界面看的后端类型
+    fn backend(&self, platform: &str) -> &'static str {
+        match (&self.install, platform) {
+            (ActionSpec::Broker { .. }, _) => "broker",
+            (ActionSpec::NpmGlobal { .. }, "container") => "user-node",
+            (_, "container") => "legacy",
+            _ => "native",
+        }
+    }
+}
+
+fn default_min_api_version() -> u32 {
+    broker::BROKER_API_VERSION
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -89,6 +165,12 @@ pub enum ActionSpec {
     },
     AiStudioInstalled,
     AiStudioLatest,
+    /// 容器内 root 软件：交给 webclaw-app-admin 的高层 API（status/install/upgrade）
+    Broker {
+        app_id: String,
+        #[serde(default = "default_min_api_version")]
+        min_api_version: u32,
+    },
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -108,6 +190,10 @@ pub struct CatalogItem {
     pub latest_version: Option<String>,
     pub state: String,
     pub error: Option<String>,
+    /// broker / user-node / legacy / native
+    pub backend: String,
+    /// broker 报告的 runtime-catalog 状态（fresh/stale/offline/...）
+    pub catalog_state: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -118,7 +204,8 @@ pub struct SoftwareProgress {
     pub line: Option<String>,
 }
 
-fn item_from_entry(entry: SoftwareEntry, platform: String) -> CatalogItem {
+fn item_from_entry(entry: SoftwareEntry, spec: &PlatformSoftwareSpec, platform: String) -> CatalogItem {
+    let backend = spec.backend(&platform).into();
     CatalogItem {
         id: entry.id,
         name: entry.name,
@@ -135,6 +222,8 @@ fn item_from_entry(entry: SoftwareEntry, platform: String) -> CatalogItem {
         latest_version: None,
         state: "not_installed".into(),
         error: None,
+        backend,
+        catalog_state: None,
     }
 }
 
@@ -196,7 +285,7 @@ pub async fn get_platform_catalog(
         .map_err(|e| e.to_string())?;
     let mut items: Vec<_> = platform_entries(manifest, &platform)
         .into_iter()
-        .map(|(entry, _)| item_from_entry(entry, platform.clone()))
+        .map(|(entry, spec)| item_from_entry(entry, &spec, platform.clone()))
         .collect();
     for item in &mut items {
         if let Some(ref icon) = item.icon.clone() {
@@ -220,12 +309,18 @@ pub async fn detect_installed(
         .unwrap_or(2);
     let sem = std::sync::Arc::new(tokio::sync::Semaphore::new((cores * 2).clamp(4, 16)));
     let mut handles = Vec::new();
+    let catalog_state = scan_catalog_state(&platform).await;
     for (entry, spec) in platform_entries(manifest, &platform) {
         let platform_key = platform.clone();
+        let catalog_state = catalog_state.clone();
         let permit = std::sync::Arc::clone(&sem).acquire_owned().await.unwrap();
         handles.push(tokio::spawn(async move {
             let _permit = permit;
-            let mut item = item_from_entry(entry, platform_key);
+            let mut item = item_from_entry(entry, &spec, platform_key);
+            if spec.broker_app().is_some() {
+                apply_broker_status(&mut item, &spec, catalog_state.as_deref()).await;
+                return item;
+            }
             match detect_one(&spec.detect, &item.platform).await {
                 Ok(Some(version)) => {
                     item.installed_version = Some(version);
@@ -253,13 +348,19 @@ pub async fn check_latest(app: AppHandle, platform: String) -> Result<Vec<Catalo
     let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2);
     let sem = std::sync::Arc::new(tokio::sync::Semaphore::new((cores * 2).clamp(4, 16)));
     let mut tasks = tokio::task::JoinSet::new();
+    let catalog_state = scan_catalog_state(&platform).await;
     for (entry, spec) in platform_entries(manifest, &platform) {
         let platform_key = platform.clone();
+        let catalog_state = catalog_state.clone();
         let sem = std::sync::Arc::clone(&sem);
         tasks.spawn(async move {
             let _permit = sem.acquire_owned().await.unwrap();
             let is_ai_studio = entry.id == "webcode-ai-studio";
-            let mut item = item_from_entry(entry, platform_key);
+            let mut item = item_from_entry(entry, &spec, platform_key);
+            if spec.broker_app().is_some() {
+                apply_broker_status(&mut item, &spec, catalog_state.as_deref()).await;
+                return item;
+            }
             let (installed, latest) = if is_ai_studio {
                 tokio::join!(detect_ai_studio(), fetch_ai_studio_latest())
             } else {
@@ -305,7 +406,16 @@ pub async fn check_software(
         .find(|(entry, _)| entry.id == id)
         .ok_or_else(|| format!("未知或不支持当前平台的软件: {}", id))?;
     let is_ai_studio = entry.id == "webcode-ai-studio";
-    let mut item = item_from_entry(entry, platform);
+    let mut item = item_from_entry(entry, &spec, platform);
+    if spec.broker_app().is_some() {
+        let catalog_state = scan_catalog_state(&item.platform).await;
+        apply_broker_status(&mut item, &spec, catalog_state.as_deref()).await;
+        return match (&item.state[..], item.error.clone()) {
+            ("runtime_outdated", Some(e)) => Err(e),
+            ("unknown", Some(e)) if item.installed_version.is_none() => Err(e),
+            _ => Ok(item),
+        };
+    }
     let (installed, latest) = if is_ai_studio {
         tokio::join!(detect_ai_studio(), fetch_ai_studio_latest())
     } else {
@@ -318,6 +428,100 @@ pub async fn check_software(
         item.latest_version.as_deref(),
     );
     Ok(item)
+}
+
+/// 用 broker `status` 填充条目。运行时过旧、目录离线、broker 出错分别落到不同状态，
+/// 不会一律显示成「未安装」。`catalog_state` 是这次扫描的整体 catalog 状态。
+async fn apply_broker_status(
+    item: &mut CatalogItem,
+    spec: &PlatformSoftwareSpec,
+    catalog_state: Option<&str>,
+) {
+    let Some((app_id, min_api_version)) = spec.broker_app() else {
+        return;
+    };
+    let runtime = broker::runtime().await;
+    if let Err(message) = runtime.require(min_api_version) {
+        item.state = "runtime_outdated".into();
+        item.error = Some(message);
+        return;
+    }
+    match broker::status(app_id).await {
+        Ok(mut status) => {
+            // apt 类不进 runtime-catalog：用只读的 apt-cache policy 补最新版本，更新仍走 broker。
+            if status.latest_version.is_none() {
+                if let ActionSpec::AptPolicy { pkg } = &spec.latest {
+                    match fetch_apt_policy(pkg).await {
+                        Ok(latest) => status.latest_version = latest,
+                        Err(e) => item.error = Some(e.to_string()),
+                    }
+                }
+            }
+            item.state = broker::state_from_status(&status);
+            item.installed_version = status.installed_version.clone();
+            item.latest_version = status.latest_version.clone();
+            item.catalog_state = broker::item_catalog_state(&status, catalog_state);
+            if status.message.is_some() {
+                item.error = status.message.clone();
+            }
+            if item.state == "unsupported" && item.error.is_none() {
+                item.error = Some(match status.upgrade_via.as_deref() {
+                    Some(via) if via != "broker" => format!("当前镜像不支持在软件管理器中升级此软件（{}）", via),
+                    _ => "当前镜像/架构不支持此软件".into(),
+                });
+            }
+        }
+        Err(e) => {
+            item.state = "unknown".into();
+            item.error = Some(e);
+        }
+    }
+}
+
+/// 本次扫描的整体 catalog 状态；broker 不可用或 catalog-info 失败时为 None。
+async fn scan_catalog_state(platform: &str) -> Option<String> {
+    if platform != "container" || broker::runtime().await.state != broker::RuntimeState::Ok {
+        return None;
+    }
+    broker::catalog_info()
+        .await
+        .ok()
+        .map(|info| broker::catalog_state_from_info(&info, chrono::Utc::now()))
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BrokerRuntimeReport {
+    pub runtime: broker::BrokerRuntime,
+    pub catalog: Option<serde_json::Value>,
+    /// fresh / stale / offline / missing / untrusted / unknown
+    pub catalog_state: Option<String>,
+    pub catalog_error: Option<String>,
+}
+
+/// 容器里 broker 运行时与 runtime-catalog 的状态；非容器平台返回 None。
+#[tauri::command]
+pub async fn broker_runtime_status(platform: String) -> Result<Option<BrokerRuntimeReport>, String> {
+    if platform != "container" {
+        return Ok(None);
+    }
+    let runtime = broker::runtime().await;
+    let (catalog, catalog_state, catalog_error) = if runtime.state == broker::RuntimeState::Ok {
+        match broker::catalog_info().await {
+            Ok(v) => {
+                let state = broker::catalog_state_from_info(&v, chrono::Utc::now());
+                (Some(v), Some(state), None)
+            }
+            Err(e) => (None, None, Some(e)),
+        }
+    } else {
+        (None, None, None)
+    };
+    Ok(Some(BrokerRuntimeReport {
+        runtime,
+        catalog,
+        catalog_state,
+        catalog_error,
+    }))
 }
 
 async fn collect_items(
@@ -552,6 +756,34 @@ pub async fn upgrade_software(
     execute_software_action(app, id, platform, true).await
 }
 
+/// 卸载只开放给 broker 条目；broker 对部分 app 会返回 unsupported。
+#[tauri::command]
+pub async fn uninstall_software(app: AppHandle, id: String, platform: String) -> Result<(), String> {
+    let (manifest, _) = load_effective_manifest(&app)
+        .await
+        .map_err(|e| e.to_string())?;
+    let (_, spec) = platform_entries(manifest, &platform)
+        .into_iter()
+        .find(|(entry, _)| entry.id == id)
+        .ok_or_else(|| format!("未知或不支持当前平台的软件: {}", id))?;
+    let (app_id, min_api) = spec
+        .broker_app()
+        .ok_or("该软件不支持在软件管理器中卸载")?;
+    broker::runtime().await.require(min_api)?;
+    let command = broker::broker_argv(BrokerOp::Uninstall, Some(app_id))?;
+    run_action_command(&app, &id, "uninstalling", &command).await?;
+    let _ = app.emit(
+        "software-progress",
+        SoftwareProgress {
+            id,
+            stage: "done".into(),
+            percent: Some(100.0),
+            line: Some("完成".into()),
+        },
+    );
+    Ok(())
+}
+
 async fn execute_software_action(
     app: AppHandle,
     id: String,
@@ -568,7 +800,7 @@ async fn execute_software_action(
 
     // Install is a manager-level idempotent operation. The shared root script
     // always ensures latest because AI Studio's own updater calls it directly.
-    if !upgrade && id == "webcode-ai-studio" {
+    if !upgrade && id == "webcode-ai-studio" && platform_spec.broker_app().is_none() {
         if detect_ai_studio().await.map_err(|e| e.to_string())?.is_some() {
             let _ = app.emit(
                 "software-progress",
@@ -588,7 +820,10 @@ async fn execute_software_action(
     } else {
         &platform_spec.install
     };
-    let command = build_action_command(action, &platform)?;
+    if let Some((_, min_api)) = platform_spec.broker_app() {
+        broker::runtime().await.require(min_api)?;
+    }
+    let command = build_action_command(action, &platform, upgrade)?;
     let stage = if upgrade { "upgrading" } else { "installing" };
 
     let _ = app.emit(
@@ -613,8 +848,17 @@ async fn execute_software_action(
     Ok(())
 }
 
-fn build_action_command(spec: &ActionSpec, platform: &str) -> Result<Vec<String>, String> {
+fn build_action_command(spec: &ActionSpec, platform: &str, upgrade: bool) -> Result<Vec<String>, String> {
     match spec {
+        ActionSpec::Broker { app_id, .. } => {
+            if platform != "container" {
+                return Err("broker 后端只用于容器平台".into());
+            }
+            broker::broker_argv(
+                if upgrade { BrokerOp::Upgrade } else { BrokerOp::Install },
+                Some(app_id),
+            )
+        }
         ActionSpec::NpmGlobal { pkg } => Ok(npm_command(
             platform,
             &["install", "-g", &format!("{}@latest", pkg)],
@@ -651,6 +895,7 @@ async fn run_action_command(
 
     let mut child = Command::new(&cmd[0])
         .args(&cmd[1..])
+        .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .kill_on_drop(true)
@@ -734,7 +979,7 @@ async fn shell_output(cmd: &str) -> Result<std::process::Output> {
     }
 }
 
-fn compute_state(installed: Option<&str>, latest: Option<&str>) -> String {
+pub(crate) fn compute_state(installed: Option<&str>, latest: Option<&str>) -> String {
     match (installed, latest) {
         (None, _) => "not_installed".into(),
         (Some(_), Some("latest")) => "up_to_date".into(),
@@ -784,7 +1029,7 @@ mod tests {
     fn npm_global_uses_user_node_only_in_container() {
         for pkg in ["@anthropic-ai/claude-code", "@openai/codex", "@google/gemini-cli"] {
             let action = ActionSpec::NpmGlobal { pkg: pkg.into() };
-            let container = build_action_command(&action, "container").unwrap();
+            let container = build_action_command(&action, "container", false).unwrap();
             assert_eq!(
                 container,
                 vec![USER_NODE_RUNNER, "npm", "install", "-g", &format!("{}@latest", pkg)]
@@ -796,11 +1041,37 @@ mod tests {
             );
             for platform in ["macos", "windows"] {
                 assert_eq!(
-                    build_action_command(&action, platform).unwrap(),
+                    build_action_command(&action, platform, false).unwrap(),
                     vec!["npm", "install", "-g", &format!("{}@latest", pkg)]
                 );
             }
         }
+    }
+
+    #[test]
+    fn broker_action_uses_fixed_broker_argv_only_in_container() {
+        let action = ActionSpec::Broker { app_id: "vscode".into(), min_api_version: 2 };
+        let prefix = ["sudo", "-n", "--", broker::BROKER_PATH];
+        let install = build_action_command(&action, "container", false).unwrap();
+        assert_eq!(install[..4], prefix);
+        assert_eq!(install[4..], ["install", "vscode"]);
+        let upgrade = build_action_command(&action, "container", true).unwrap();
+        assert_eq!(upgrade[4..], ["upgrade", "vscode"]);
+        assert!(build_action_command(&action, "macos", false).is_err());
+        let evil = ActionSpec::Broker { app_id: "vscode --x".into(), min_api_version: 2 };
+        assert!(build_action_command(&evil, "container", false).is_err());
+        // user-npm 不受 broker 影响
+        let npm = ActionSpec::NpmGlobal { pkg: "@openai/codex".into() };
+        assert_eq!(build_action_command(&npm, "container", true).unwrap()[0], USER_NODE_RUNNER);
+    }
+
+    #[test]
+    fn broker_spec_only_needs_install() {
+        let spec: PlatformSoftwareSpec =
+            serde_json::from_str(r#"{"install":{"type":"broker","app_id":"gimp"}}"#).unwrap();
+        assert_eq!(spec.broker_app(), Some(("gimp", broker::BROKER_API_VERSION)));
+        assert_eq!(spec.backend("container"), "broker");
+        assert!(serde_json::from_str::<PlatformSoftwareSpec>(r#"{"install":{"type":"apt","pkg":"gimp"}}"#).is_err());
     }
 
     #[test]

@@ -25,6 +25,8 @@ Tauri 后端 (Rust)
   ├─ check_latest           并发检测已安装版本 + 最新版本
   ├─ install_software       执行安装，流式推送 software-progress 事件
   ├─ upgrade_software       执行升级，流式推送 software-progress 事件
+  ├─ uninstall_software     卸载（仅 broker 条目；broker 可能返回不支持）
+  ├─ broker_runtime_status  容器 broker API 版本 + runtime-catalog 状态
   ├─ auth_login/status/logout   浏览器登录、读取登录态、退出
   └─ refresh_entitlements   读 Store 权益（get_cached_entitlements 只读缓存）
 
@@ -88,7 +90,36 @@ Tauri 后端 (Rust)
 }
 ```
 
-ActionSpec 支持的类型：`NpmGlobal` / `NpmRegistry` / `Apt` / `AptPolicy` / `CustomScript` / `Shell` / `Static` / `Dpkg`
+ActionSpec 支持的类型：`NpmGlobal` / `NpmRegistry` / `Apt` / `AptPolicy` / `CustomScript` / `Shell` / `Static` / `Dpkg` / `Binary` / `GithubReleaseLatest` / `Broker`
+
+### 容器后端
+
+| 后端 | 如何得到 | 适用 |
+|---|---|---|
+| broker | 客户端把白名单内 app 的旧 `apt` / `custom-script` 写法映射为 `webclaw-app-admin` 高层 API | 需要 root 且 broker 能端到端 install/upgrade 的系统/桌面软件（apt、.deb、AppImage/归档/cursor_api，以及声明了 upgrade_by_reinstall 的 qq/telegram/discord，共 24 个） |
+| user-node | `npm-global` / `npm-registry`（旧的 Claude/OpenCode root 脚本写法也会被映射过来） | Claude Code、Codex、OpenCode 等用户 NVM CLI，经 `/usr/local/bin/webclaw-user-node-run`，不用 root |
+| legacy | `custom-script`（sudoers 逐个放行的固定脚本） | 暂时没有端到端 broker 支持的软件 |
+
+**发布的 `software-manifest.json` 保持旧格式**（不含 `"type": "broker"`），老版本客户端照常读取；
+新客户端在 `src-tauri/src/commands/manifest.rs` 里按硬编码白名单 `BROKER_APPS` 做 normalize：
+只有 id 在白名单中、且 action 与历史内置写法完全一致时才映射为 broker，远程清单里任意别的
+custom-script / apt / shell 都原样保留，绝不因此获得 broker 权限。`ActionSpec::Broker`
+（`{"type":"broker","app_id":"vscode","min_api_version":2}`）作为内部能力保留，客户端同样要求
+`app_id == id` 且在白名单内，但当前公开清单不使用它——等老客户端淘汰后再考虑。
+
+**容器安装策略只信任随客户端发布的 bundled 清单。** 远程/缓存清单可以更新名称、描述、分组、商品链接等元数据，
+但 `platforms.container`（含 shell / custom-script 等可执行 action）每次加载时都替换为 bundled 里同 id 的版本；
+bundled 里没有的远程新 app 在容器平台不提供任何后端；bundled 读不到时容器条目全部移除（fail closed）。macOS / Windows 暂保持原样。
+
+broker v2 镜像上，新客户端不再调用 `refresh_scripts`（即不再 sudo 运行 `webclaw-scripts-updater` 从远程 main 覆盖
+`/opt/install-scripts`），legacy 脚本以镜像内版本为准；只有没有 v2 broker 的旧镜像才继续走旧的脚本刷新。
+apt 类 broker 软件的最新版本由客户端只读执行 `apt-cache policy <包名>` 获得（包名来自硬编码白名单），升级仍走 broker。
+
+broker 调用固定为 `sudo -n -- /usr/local/bin/webclaw-app-admin <status|install|upgrade|uninstall> <app_id>`（argv 直接执行，不经 shell；
+sudoers 只放行这一个入口），启动时先探测 `api-version`。镜像里没有 broker 或 API 版本低于 2 时，界面显示
+「WebClaw 镜像运行时过旧，需要一次性升级镜像」，不会退回到宽泛 sudo。
+
+`runtime-catalog.json`（版本 + 各架构下载地址与 SHA256）见 [docs/runtime-catalog.md](docs/runtime-catalog.md)。
 
 ## 账号与权益
 
@@ -144,7 +175,8 @@ npm run tauri build    # 生产构建（生成 .dmg / .deb / .msi）
 COPY webclaw-software-manager/scripts/ /opt/install-scripts/
 ```
 
-容器内通过 noVNC 桌面启动 `webclaw-software-manager` GUI 应用，需要 sudo NOPASSWD 白名单（`apt-get`、`npm`、`dpkg`、`bash`）。
+容器内通过 noVNC 桌面启动 `webclaw-software-manager` GUI 应用。root 操作只经过 sudoers 精确放行的受控入口：
+broker `/usr/local/bin/webclaw-app-admin`（api v2）与逐个列出的 legacy 安装脚本；用户 CLI 走 `webclaw-user-node-run`，不需要 sudo。
 
 ## 相关项目
 

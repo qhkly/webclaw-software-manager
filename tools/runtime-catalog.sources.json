@@ -1,0 +1,85 @@
+{
+  "$comment": "runtime-catalog.json 的自动发现来源。只收录能可靠发现最新版本、且两个架构 artifact 都能确定的应用；Trae/Eclipse/WeChat/Obsidian 等暂不收录，避免猜版本。这里不是 root policy：怎么装由镜像内 /opt/on-demand-apps/<id>.json 决定；url_prefixes 与该文件的 catalog_url_prefixes 保持一致。",
+  "apps": {
+    "cc-switch": {
+      "type": "github-release",
+      "repo": "farion1231/cc-switch",
+      "assets": {
+        "amd64": "CC-Switch-v{version_no_v}-Linux-x86_64.deb",
+        "arm64": "CC-Switch-v{version_no_v}-Linux-arm64.deb"
+      }
+    },
+    "cursor": {
+      "type": "cursor-api",
+      "endpoint": "https://api2.cursor.sh/updates/api/download/stable/{platform}/cursor",
+      "platforms": {
+        "amd64": "linux-x64",
+        "arm64": "linux-arm64"
+      },
+      "url_prefixes": [
+        "https://downloads.cursor.com/"
+      ],
+      "note": "api2.cursor.sh 与 Docker cursor.json 的 api_base/version_api 同源；平台名来自其 arch_map"
+    },
+    "dbeaver": {
+      "type": "github-release",
+      "repo": "dbeaver/dbeaver",
+      "assets": {
+        "amd64": "dbeaver-ce-{version_no_v}-linux-x86_64.deb",
+        "arm64": "dbeaver-ce-{version_no_v}-linux-aarch64.deb"
+      }
+    },
+    "dockyard": {
+      "type": "github-release",
+      "repo": "land007/dockyard",
+      "assets": {
+        "amd64": "dockyard_{version_no_v}_amd64.deb",
+        "arm64": "dockyard_{version_no_v}_arm64.deb"
+      }
+    },
+    "ghostty": {
+      "type": "github-release",
+      "repo": "pkgforge-dev/ghostty-appimage",
+      "assets": {
+        "amd64": "Ghostty-{version_no_v}-x86_64.AppImage",
+        "arm64": "Ghostty-{version_no_v}-aarch64.AppImage"
+      }
+    },
+    "intellij": {
+      "type": "jetbrains-release",
+      "code": "IIC",
+      "url_prefixes": [
+        "https://download.jetbrains.com/",
+        "https://download-cdn.jetbrains.com/"
+      ],
+      "note": "与 Docker intellij.json 的 jetbrains_code 一致"
+    },
+    "opentypeless": {
+      "type": "github-release",
+      "repo": "land007/opentypeless",
+      "assets": {
+        "amd64": "OpenTypeless_{version_no_v}_amd64.deb",
+        "arm64": "OpenTypeless_{version_no_v}_arm64.deb"
+      }
+    },
+    "pycharm": {
+      "type": "jetbrains-release",
+      "code": "PCP",
+      "url_prefixes": [
+        "https://download.jetbrains.com/",
+        "https://download-cdn.jetbrains.com/"
+      ],
+      "note": "与 Docker pycharm.json 的 jetbrains_code 一致"
+    },
+    "webclaw-launcher": {
+      "type": "json-version-api",
+      "version_url": "https://webclaw.qhkly.com/api/download/latest",
+      "version_field": "version",
+      "released_at_field": "publishedAt",
+      "artifacts": {
+        "amd64": "https://launcher.qhkly.com/launcher/versions/v{version_no_v}/webclaw-launcher-linux-x64.zip",
+        "arm64": "https://launcher.qhkly.com/launcher/versions/v{version_no_v}/webclaw-launcher-linux-arm64.zip"
+      }
+    }
+  }
+}
