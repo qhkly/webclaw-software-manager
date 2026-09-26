@@ -1,6 +1,6 @@
 {
   "$schema": "./software-manifest.schema.json",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "_remote_url": "https://raw.githubusercontent.com/qhkly/webclaw-software-manager/main/software-manifest.json",
   "software": [
     {
@@ -21,8 +21,12 @@
             "pkg": "@anthropic-ai/claude-code"
           },
           "install": {
-            "type": "npm-global",
-            "pkg": "@anthropic-ai/claude-code"
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-claude-code.sh"
+          },
+          "upgrade": {
+            "type": "custom-script",
+            "script": "/opt/install-scripts/install-claude-code.sh"
           }
         },
         "macos": {

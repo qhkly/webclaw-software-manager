@@ -1021,9 +1021,90 @@ fn version_lt(a: &str, b: &str) -> bool {
     false
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::manifest::ManifestFile;
+
+    fn bundled_manifest() -> ManifestFile {
+        serde_json::from_str(include_str!("../../../software-manifest.json"))
+            .expect("software-manifest.json should parse")
+    }
+
+    fn claude_spec(platform: &str) -> PlatformSoftwareSpec {
+        let manifest = bundled_manifest();
+        let entry = manifest
+            .software
+            .into_iter()
+            .find(|entry| entry.id == "claude-code")
+            .expect("claude-code entry should exist");
+        entry
+            .platforms
+            .get(platform)
+            .cloned()
+            .unwrap_or_else(|| panic!("claude-code should support {platform}"))
+    }
+
+    #[test]
+    fn container_claude_install_and_upgrade_use_fixed_sudo_script() {
+        let (_, spec) = crate::commands::manifest::platform_entries(bundled_manifest(), "container")
+            .into_iter()
+            .find(|(entry, _)| entry.id == "claude-code")
+            .expect("claude-code should support container");
+        let expected = vec!["sudo", "/opt/install-scripts/install-claude-code.sh"];
+
+        // manifest 写什么就执行什么：platform_entries 不改写 Claude 的 action
+        let upgrade = spec.upgrade.as_ref().expect("container claude-code declares upgrade");
+        for (action, is_upgrade) in [(&spec.install, false), (upgrade, true)] {
+            assert!(matches!(
+                action,
+                ActionSpec::CustomScript { script } if script == "/opt/install-scripts/install-claude-code.sh"
+            ));
+            assert_eq!(
+                build_action_command(action, "container", is_upgrade).expect("build container claude command"),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn claude_install_script_prefers_user_node_runner_with_legacy_fallback() {
+        let script = include_str!("../../../scripts/install-claude-code.sh");
+        assert!(script.contains("USER_NODE_RUN=/usr/local/bin/webclaw-user-node-run\n"));
+        // 新容器：runner 可执行时所有 node 命令都经它进入 ubuntu NVM 环境
+        assert!(script.contains("if [ -x \"$USER_NODE_RUN\" ]; then\n    # 新容器：装进 ubuntu 的 NVM 用户环境\n    run_node() { \"$USER_NODE_RUN\" \"$@\"; }\n"));
+        // 旧容器：runner 缺失时回退到 system npm/claude
+        assert!(script.contains("else\n    # 旧容器（无 runner）：回退到 system Node\n    run_node() { \"$@\"; }\nfi\n"));
+        assert!(script.contains(
+            "run_node npm install -g --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 --fetch-timeout=300000 @anthropic-ai/claude-code@latest\n"
+        ));
+        // npm/claude 只能经 run_node 调用
+        for line in script.lines().map(str::trim_start) {
+            assert!(!line.starts_with("npm ") && !line.starts_with("claude "), "bare call: {line}");
+        }
+        // 固定白名单入口：不读取调用方参数，"$@" 只出现在两个 run_node 定义里
+        assert_eq!(script.matches("\"$@\"").count(), 2);
+        for forbidden in ["$1", "$*", "${@", "${1", "eval "] {
+            assert!(!script.contains(forbidden), "script must not use {forbidden}");
+        }
+    }
+
+    #[test]
+    fn desktop_claude_install_keeps_unprivileged_npm_global_behavior() {
+        for platform in ["macos", "windows"] {
+            let spec = claude_spec(platform);
+            assert!(matches!(
+                spec.install,
+                ActionSpec::NpmGlobal { ref pkg } if pkg == "@anthropic-ai/claude-code"
+            ));
+
+            let command =
+                build_action_command(&spec.install, platform, false).expect("build npm-global command");
+            assert_eq!(command.first().map(String::as_str), Some("npm"));
+            assert!(!command.iter().any(|arg| arg == "sudo"));
+        }
+    }
 
     #[test]
     fn npm_global_uses_user_node_only_in_container() {

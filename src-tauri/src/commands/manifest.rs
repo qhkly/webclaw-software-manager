@@ -89,7 +89,8 @@ async fn parse_manifest(content: &str) -> Result<ManifestFile> {
 /// 刻意不在表中（继续 legacy/special）：
 ///   - webcode-ai-studio、webclaw-software-manager、hermes、webcode-git-manager：broker 不支持可靠升级
 ///     或客户端已有专用升级逻辑；
-///   - claude-code / codex / opencode：用户 NVM CLI，永远不走 root broker；
+///   - claude-code / codex / opencode：用户 NVM CLI，永远不走 root broker
+///     （claude-code 经固定脚本 install-claude-code.sh 安装，脚本内再交给 user-node runner）；
 ///   - 没有 Docker policy 的 manager-only 工具。
 ///
 /// 这是硬编码白名单：容器平台上的 broker 条目必须 `app_id == entry.id` 且在此表中，
@@ -335,22 +336,6 @@ pub fn platform_entries(
                             upgrade: None,
                         };
                     }
-                    // Cached/remote manifests from the old Claude installer must not
-                    // bring back its sudo custom-script action.
-                    if entry.id == "claude-code"
-                        && matches!(&platform_spec.install, ActionSpec::CustomScript { script } if script == "/opt/install-scripts/install-claude-code.sh")
-                    {
-                        platform_spec.install = ActionSpec::NpmGlobal {
-                            pkg: "@anthropic-ai/claude-code".into(),
-                        };
-                    }
-                    if entry.id == "claude-code"
-                        && matches!(&platform_spec.upgrade, Some(ActionSpec::CustomScript { script }) if script == "/opt/install-scripts/install-claude-code.sh")
-                    {
-                        platform_spec.upgrade = Some(ActionSpec::NpmGlobal {
-                            pkg: "@anthropic-ai/claude-code".into(),
-                        });
-                    }
                     // Older manifests detect Codex through the ambient PATH, which
                     // may contain the system Node installation instead of ubuntu NVM.
                     if entry.id == "codex"
@@ -373,29 +358,6 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
-    #[test]
-    fn cached_claude_script_is_routed_to_user_npm() {
-        let mut manifest: ManifestFile =
-            serde_json::from_str(include_str!("../../../software-manifest.json")).unwrap();
-        let claude = manifest
-            .software
-            .iter_mut()
-            .find(|entry| entry.id == "claude-code")
-            .unwrap();
-        let spec = claude.platforms.get_mut("container").unwrap();
-        spec.install = ActionSpec::CustomScript {
-            script: "/opt/install-scripts/install-claude-code.sh".into(),
-        };
-        spec.upgrade = Some(spec.install.clone());
-        let entries = platform_entries(manifest, "container");
-        let (_, spec) = entries
-            .iter()
-            .find(|(entry, _)| entry.id == "claude-code")
-            .unwrap();
-        assert!(matches!(&spec.install, ActionSpec::NpmGlobal { pkg } if pkg == "@anthropic-ai/claude-code"));
-        assert!(matches!(&spec.upgrade, Some(ActionSpec::NpmGlobal { pkg }) if pkg == "@anthropic-ai/claude-code"));
-    }
-
     /// 仓库发布的清单保持老客户端可读的旧格式；新架构完全由客户端 normalize 得到。
     const PUBLISHED: &str = include_str!("../../../software-manifest.json");
     const BROKER_IDS: [&str; 24] = [
@@ -408,8 +370,7 @@ mod tests {
     const LEGACY_IDS: [&str; 4] = [
         "webcode-ai-studio", "webclaw-software-manager", "hermes", "webcode-git-manager",
     ];
-    const USER_NODE: [(&str, &str); 3] = [
-        ("claude-code", "@anthropic-ai/claude-code"),
+    const USER_NODE: [(&str, &str); 2] = [
         ("codex", "@openai/codex"),
         ("opencode", "opencode-ai"),
     ];
@@ -569,6 +530,13 @@ mod tests {
         }
         for (id, pkg) in USER_NODE {
             assert_user_node(&specs[id], pkg);
+        }
+        // claude-code：检测走用户 NVM npm，安装/升级走固定 sudo 脚本（兼容无 runner 的旧容器）
+        let claude = &specs["claude-code"];
+        assert!(claude.broker_app().is_none());
+        assert!(matches!(&claude.detect, ActionSpec::NpmGlobal { pkg } if pkg == "@anthropic-ai/claude-code"));
+        for action in [&claude.install, claude.upgrade.as_ref().unwrap()] {
+            assert!(matches!(action, ActionSpec::CustomScript { script } if script == "/opt/install-scripts/install-claude-code.sh"));
         }
         for id in LEGACY_IDS {
             assert!(specs[id].broker_app().is_none(), "{} must stay legacy", id);
