@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-25T07:03:40Z",
+  "generated_at": "2026-10-03T09:15:43Z",
   "apps": {
     "cc-switch": {
       "version": "3.20.4",
@@ -17,15 +17,15 @@
       }
     },
     "cursor": {
-      "version": "3.22.7",
+      "version": "3.23.12",
       "artifacts": {
         "amd64": {
-          "url": "https://downloads.cursor.com/production/37076c6c3f9e253c0fa2305197e45befd13a2268/linux/x64/Cursor-3.22.7-x86_64.AppImage",
-          "sha256": "79706591002dbbdfdd59eab471fe638241dcf03d3273b7e82020f0641bebc45d"
+          "url": "https://downloads.cursor.com/production/2d29876d567da1607532b23bbf2cd5ddbca496fe/linux/x64/Cursor-3.23.12-x86_64.AppImage",
+          "sha256": "6ba0b06a8e9087688f312b8484e61ce28c185b609c3731b8906e17a6aa98a238"
         },
         "arm64": {
-          "url": "https://downloads.cursor.com/production/37076c6c3f9e253c0fa2305197e45befd13a2268/linux/arm64/Cursor-3.22.7-aarch64.AppImage",
-          "sha256": "431a7995c352da2f7364f36055d9ae46dd317a1413b40f4ca07fa299d9a9e9fd"
+          "url": "https://downloads.cursor.com/production/2d29876d567da1607532b23bbf2cd5ddbca496fe/linux/arm64/Cursor-3.23.12-aarch64.AppImage",
+          "sha256": "74c9dd90312f11e9f634979039432db162ebfb3eda87fdbb2a366b194084ec93"
         }
       }
     },
