@@ -1,45 +1,45 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-25T07:03:40Z",
+  "generated_at": "2026-11-28T11:57:26Z",
   "apps": {
     "cc-switch": {
-      "version": "3.20.4",
-      "released_at": "2026-09-22T14:42:23Z",
+      "version": "4.0.44",
+      "released_at": "2026-11-27T15:51:55Z",
       "artifacts": {
         "amd64": {
-          "url": "https://github.com/farion1231/cc-switch/releases/download/v3.20.4/CC-Switch-v3.20.4-Linux-x86_64.deb",
-          "sha256": "434557d3ae08b792c8138c5508f104e799f36d2ced563fb94b3a86ffbb250801"
+          "url": "https://github.com/farion1231/cc-switch/releases/download/v4.0.44/CC-Switch-v4.0.44-Linux-x86_64.deb",
+          "sha256": "8726b13239e5204b12e8fefe7b9583b34e407d22b172c6eb8fe87b4228080c65"
         },
         "arm64": {
-          "url": "https://github.com/farion1231/cc-switch/releases/download/v3.20.4/CC-Switch-v3.20.4-Linux-arm64.deb",
-          "sha256": "515cfcf7dc135337510239be61096499be12a9ed3a67cd93f6b449f499cfc4a3"
+          "url": "https://github.com/farion1231/cc-switch/releases/download/v4.0.44/CC-Switch-v4.0.44-Linux-arm64.deb",
+          "sha256": "5c75b5e797dc94462aee74eba0aeb4a92f4e3aa2027139f24376b87b68ca7061"
         }
       }
     },
     "cursor": {
-      "version": "3.22.7",
+      "version": "3.32.10",
       "artifacts": {
         "amd64": {
-          "url": "https://downloads.cursor.com/production/37076c6c3f9e253c0fa2305197e45befd13a2268/linux/x64/Cursor-3.22.7-x86_64.AppImage",
-          "sha256": "79706591002dbbdfdd59eab471fe638241dcf03d3273b7e82020f0641bebc45d"
+          "url": "https://downloads.cursor.com/production/0d3b96e46ce65af82ed74bc6f14883b33e1a0597/linux/x64/Cursor-3.32.10-x86_64.AppImage",
+          "sha256": "498d306a78afaa07147b188e86ce11a942d0988471c914f27ccce928d8fb888a"
         },
         "arm64": {
-          "url": "https://downloads.cursor.com/production/37076c6c3f9e253c0fa2305197e45befd13a2268/linux/arm64/Cursor-3.22.7-aarch64.AppImage",
-          "sha256": "431a7995c352da2f7364f36055d9ae46dd317a1413b40f4ca07fa299d9a9e9fd"
+          "url": "https://downloads.cursor.com/production/0d3b96e46ce65af82ed74bc6f14883b33e1a0597/linux/arm64/Cursor-3.32.10-aarch64.AppImage",
+          "sha256": "5eecf55ac5770855c495c8fcaf359bd47ba4951046846c26381d93febe1ab8e4"
         }
       }
     },
     "dbeaver": {
-      "version": "26.2.1",
-      "released_at": "2026-09-21T04:23:05Z",
+      "version": "26.2.5.2",
+      "released_at": "2026-11-24T15:37:31Z",
       "artifacts": {
         "amd64": {
-          "url": "https://github.com/dbeaver/dbeaver/releases/download/26.2.1/dbeaver-ce-26.2.1-linux-x86_64.deb",
-          "sha256": "ed4fd3bfec2e79919d105859a6e005d03e670a46dfb8987d2cb0d4d14ab1d627"
+          "url": "https://github.com/dbeaver/dbeaver/releases/download/26.2.5.2/dbeaver-ce-26.2.5.2-linux-x86_64.deb",
+          "sha256": "dce178c94dc6f34adf226c708e4e612d5880f89c74b0c6e88c7ef63c979982ac"
         },
         "arm64": {
-          "url": "https://github.com/dbeaver/dbeaver/releases/download/26.2.1/dbeaver-ce-26.2.1-linux-aarch64.deb",
-          "sha256": "f021e43b8af79c8a1c88e16cb5566ad8e5283a997d4b69a777d1b4645e8dd94f"
+          "url": "https://github.com/dbeaver/dbeaver/releases/download/26.2.5.2/dbeaver-ce-26.2.5.2-linux-aarch64.deb",
+          "sha256": "332f9ed9f8d21b4ac778483fa687acc657699950c0b8c3ddc2ae579b0ad85d52"
         }
       }
     },
@@ -58,16 +58,16 @@
       }
     },
     "ghostty": {
-      "version": "1.3.1",
-      "released_at": "2026-03-13T20:50:40Z",
+      "version": "1.4.0",
+      "released_at": "2026-10-28T18:45:48Z",
       "artifacts": {
         "amd64": {
-          "url": "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v1.3.1/Ghostty-1.3.1-x86_64.AppImage",
-          "sha256": "fde48d2b716afd1978766879bbf1aae30dd305e8ad86a1037a2614a14d82dc28"
+          "url": "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v1.4.0/Ghostty-1.4.0-x86_64.AppImage",
+          "sha256": "50ad4f8b54a01e7d41426e7d12ffae9c88aa1c516ac140755e2bca596e1d2ae6"
         },
         "arm64": {
-          "url": "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v1.3.1/Ghostty-1.3.1-aarch64.AppImage",
-          "sha256": "55b7d1e2073b80954e23167a70f9e5994189d81e954d36dad4d2dc2d2fe6c121"
+          "url": "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v1.4.0/Ghostty-1.4.0-aarch64.AppImage",
+          "sha256": "932e21c671c215e6140633027acb4e8705cef3377d335202211c32d88b5bf506"
         }
       }
     },
@@ -100,16 +100,16 @@
       }
     },
     "pycharm": {
-      "version": "2026.2.3",
-      "released_at": "2026-09-18T00:00:00Z",
+      "version": "2026.3.0.2",
+      "released_at": "2026-11-24T00:00:00Z",
       "artifacts": {
         "amd64": {
-          "url": "https://download.jetbrains.com/python/pycharm-2026.2.3.tar.gz",
-          "sha256": "e8e4fbe4dab44390d09f681e059a316e692cabd24b2e11ce98ff76c8120fa313"
+          "url": "https://download.jetbrains.com/python/pycharm-2026.3.0.2.tar.gz",
+          "sha256": "83f64231ac3032a4526a810aead197e87976e09558471bf9c940a1b8a6bab4bc"
         },
         "arm64": {
-          "url": "https://download.jetbrains.com/python/pycharm-2026.2.3-aarch64.tar.gz",
-          "sha256": "c1ac6b7440f4d8946241d602220e9db9afac75f41831ca21dc5168cdf3689d0e"
+          "url": "https://download.jetbrains.com/python/pycharm-2026.3.0.2-aarch64.tar.gz",
+          "sha256": "31caa6852dd981befe9d44e387150849578e876183d46ac3eb92576d4b5aac98"
         }
       }
     },
